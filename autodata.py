@@ -31,25 +31,21 @@ import imputation
 import encoding
 import normalization
 
-import warnings
-if not sys.warnoptions:
-    warnings.simplefilter("ignore")
-
 
 def read_csv(*args, **kwargs):
     return AutoData(pd.read_csv(*args, **kwargs))
 
+
 def read_automl():
     pass
 
-# Surcouche de pd.DataFrame
-# WARNING column names must be different from attribute names
+
 class AutoData(pd.DataFrame):
     """ AutoData class
     """
 
     ## 1. #################### READ/WRITE DATA ######################
-    def __init__(self, *args, indexes=None, **kwargs):
+    def __init__(self, *args, **kwargs): # indexes = None
         """ Constructor
         """
         pd.DataFrame.__init__(self, *args, **kwargs)
@@ -57,13 +53,18 @@ class AutoData(pd.DataFrame):
         self.info = {}
 
         # Initialize indexes
-        if indexes is None:
-            self.indexes = {'header':range(5)} # header, train, test, valid, X, y
-            self.get_types() # find categorical and numerical variables
+        #if indexes is None:
+        _metadata = ['indexes']
+        self.indexes = {'header':range(5)} # header, train, test, valid, X, y
+        self.get_types() # find categorical and numerical variables
 
         # Copy indexes if already exists
-        else:
-            self.indexes = indexes
+        #else:
+        #    self.indexes = indexes
+
+    @property
+    def _constructor(self):
+        return AutoData
 
     def to_automl(self):
         pass
@@ -82,17 +83,20 @@ class AutoData(pd.DataFrame):
             return self
 
         elif key in ['train', 'valid', 'test', 'header']:
-            return AutoData(self.iloc[self.indexes[key]], indexes=self.indexes)
+            return self.iloc[self.indexes[key]]
+            #return AutoData(self.iloc[self.indexes[key]], indexes=self.indexes)
 
         elif key in ['X', 'y', 'categorical', 'numerical']:
-            return AutoData(self.loc[:, self.indexes[key]], indexes=self.indexes)
+            return self.loc[:, self.indexes[key]]
+            #return AutoData(self.loc[:, self.indexes[key]], indexes=self.indexes)
 
         elif '_' in key:
             # X_train, y_test, etc.
             v, h = key.split('_')
             hindex = self.indexes[h]
             vindex = self.indexes[v]
-            return AutoData(self.loc[hindex, vindex], indexes=self.indexes)
+            return self.loc[hindex, vindex]
+            #return AutoData(self.loc[hindex, vindex], indexes=self.indexes)
 
         else:
             raise Exception('Unknown key.')
