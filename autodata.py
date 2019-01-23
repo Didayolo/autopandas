@@ -1,21 +1,35 @@
 # AutoData
 # Based on Pandas, numpy, sklearn, matplotlib
 
-#Lecture AutoML, CSV, TFRecords
+# Read AutoML, CSV, TFRecords
+
+# Find an example CSV with :
+# Categorical, numerical and missing values
 
 # Simplification (une méthode par affichage, traitement, etc)
 # Le notebook appelle chaque méthode avec une explication
 # Transformations : méthodes qui renvoie un objet AutoML (pas de duplication systématique des données)
 
 # Init info, etc.
+# Detect task : y in numerical or in categorical
 # Train, test, split
-
-# Classification or regression ?
+# For each method (display, etc.) parameter "key" gives the wanted subset of data
 
 # Imports
+import sys
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.ensemble import RandomForestClassifier
+
+from sklearn.decomposition import PCA
+
+sys.path.append('utils')
+#import utilities
+#import processing
+import imputation
+import encoding
+import normalization
 
 
 def read_csv(*args, **kwargs):
@@ -37,6 +51,7 @@ class AutoData(pd.DataFrame):
 
         self.info = {}
         self.indexes = {'header':range(5)} # header, train, test, valid, X, y
+        self.get_types() # find categorical and numerical variables
 
     def to_automl(self):
         pass
@@ -55,7 +70,7 @@ class AutoData(pd.DataFrame):
         elif key in ['train', 'valid', 'test', 'header']:
             return self.iloc[self.indexes[key]]
 
-        elif key in ['X', 'y']:
+        elif key in ['X', 'y', 'categorical', 'numerical']:
             return self.loc[:, self.indexes[key]]
 
         elif '_' in key:
@@ -69,6 +84,26 @@ class AutoData(pd.DataFrame):
             raise Exception('Unknown key.')
 
 
+    def get_types(self):
+        """ Get variables types: Numeric or Categorical.
+            Save it as indexes with key 'numerical' and 'categorical'.
+        """
+        N = self.shape[0]
+        prop = int(N / 10) # Arbitrary proportion of different values where a numerical variable is considered categorical
+
+        categorical_index = []
+        numerical_index = []
+
+        for column in list(self):
+            p = len(self[column].unique()) # number of unique values in column
+
+            if (p <= prop) or any(isinstance(i, str) for i in self[column]):
+                categorical_index.append(column)
+            else:
+                numerical_index.append(column)
+
+        self.indexes['categorical'] = categorical_index
+        self.indexes['numerical'] = numerical_index
 
     ## 2. ###################### PROCESSINGS #########################
     # Imputation, encoding, normalization
@@ -98,13 +133,66 @@ class AutoData(pd.DataFrame):
         self.set_index('X', X)
 
 
-    def process(imputation=None, normalization=None, encoding=None):
+    def imputation(self, method, key=None):
+        """ Impute missing values.
+            :param method: None, 'remove', 'most', 'mean', 'median'
+            :return: Data with imputed values.
+            :rtype: AutoData
+        """
+        data = self.get_data(key=key)
+
+        for column in list(data):
+            if method == 'mean':
+                data = imputation.mean(data, column)
+
+            else:
+                raise Exception('Unknown imputation method: {}'.format(method))
+
+        return data
+
+
+    def normalization(self, method):
+        """ Normalize data.
+            :param method: 'standard', 'min-max', None
+            :return: Normalized data.
+            :rtype: AutoData
+        """
+        pass
+
+
+    def encoding(self, method):
+        """ Encode categorical variables.
+            :param method: 'none', 'label', 'one-hot', 'rare-one-hot', 'target', 'likelihood', 'count', 'probability'
+            :param target: Target column name (target encoding).
+            :param coeff: Coefficient defining rare values (rare one-hot encoding).
+                          A rare category occurs less than the (average number of occurrence * coefficient).
+        """
         pass
 
 
     ## 3. ###################### VISUALIZATION #######################
-    def pca():
-        pass
+    def pca(self, verbose=False, **kwargs):
+        """
+            Compute PCA.
+            :param verbose: Display additional information during run
+            :param **kwargs: Additional parameters for PCA (see sklearn doc)
+            :return: Tuple (pca, X) containing a PCA object (see sklearn doc) and the transformed data
+            :rtype: Tuple
+        """
+        pca = PCA(**kwargs)
+        X = pca.fit_transform(self)
+
+        print('Explained variance ratio of the {} components: \n {}'.format(pca.n_components_,
+                                                                            pca.explained_variance_ratio_))
+        if verbose:
+            plt.bar(left=range(pca.n_components_),
+                    height=pca.explained_variance_ratio_,
+                    width=0.3,
+                    tick_label=range(pca.n_components_))
+            plt.title('Explained variance ratio by principal component')
+            plt.show()
+
+        return pca, X
 
 
     def pairplot():

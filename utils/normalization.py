@@ -1,9 +1,11 @@
+# Function for normalization
+
 import pandas as pd
 
 def standard(df, column, mean=None, std=None, return_param=False):
     """
         Performs standard normalization.
-            
+
         :param df: Data
         :param column: Column to normalize
         :param mean: Mean, computed if not specified
@@ -17,7 +19,7 @@ def standard(df, column, mean=None, std=None, return_param=False):
         mean = x[column].mean()
         std = x[column].std()
     x[column] = (x[column] - mean) / std
-    
+
     if return_param:
         return x, (mean, std)
     return x
@@ -25,7 +27,7 @@ def standard(df, column, mean=None, std=None, return_param=False):
 def min_max(df, column, mini=None, maxi=None, return_param=False):
     """
         Performs min-max normalization.
-            
+
         :param df: Data
         :param column: Column to normalize
         :param mini: Minimum, computed if not specified
@@ -39,7 +41,7 @@ def min_max(df, column, mini=None, maxi=None, return_param=False):
         mini = x[column].min()
         maxi = x[column].max()
     x[column] = (x[column] - mini) / (maxi - mini)
-    
+
     if return_param:
         return x, (mini, maxi)
     return x
