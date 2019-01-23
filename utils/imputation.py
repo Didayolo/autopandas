@@ -7,9 +7,8 @@ def mean(data, column):
         :return: Imputed data
         :rtype: AutoData
     """
-    x = data.copy()
-    x[column] = x[column].fillna(x[column].mean())
-    return x
+    data[column] = data[column].fillna(data[column].mean())
+    return data
 
 def median(data, column):
     """ Replace missing values by the median of the column
@@ -18,9 +17,8 @@ def median(data, column):
         :return: Imputed data
         :rtype: AutoData
     """
-    x = data.copy()
-    x[column] = x[column].fillna(x[column].median())
-    return x
+    data[column] = data[column].fillna(data[column].median())
+    return data
 
 def remove(data, columns):
     """ Remove missing values
@@ -29,9 +27,8 @@ def remove(data, columns):
         :return: Imputed data
         :rtype: AutoData
     """
-    x = data.copy()
-    x = x.dropna(axis=0, subset=columns)
-    return x
+    data = data.dropna(axis=0, subset=columns)
+    return data
 
 def most(data, column):
     """ Replace missing values by the most frequent value of the column
@@ -40,7 +37,6 @@ def most(data, column):
         :return: Imputed data
         :rtype: AutoData
     """
-    #x = data.copy() # maybe needed ?
     most_frequent_value = data[column].value_counts().idxmax()
     data[column] = data[column].fillna(most_frequent_value)
     return data

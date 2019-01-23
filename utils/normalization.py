@@ -1,12 +1,10 @@
 # Function for normalization
 
-import pandas as pd
-
-def standard(df, column, mean=None, std=None, return_param=False):
+def standard(data, column, mean=None, std=None, return_param=False):
     """
         Performs standard normalization.
 
-        :param df: Data
+        :param data: Data
         :param column: Column to normalize
         :param mean: Mean, computed if not specified
         :param std: Standard deviation, computed if not specified
@@ -14,21 +12,21 @@ def standard(df, column, mean=None, std=None, return_param=False):
         :return: Normalized data
         :rtype: pd.DataFrame
     """
-    x = df.copy()
     if not mean and not std:
-        mean = x[column].mean()
-        std = x[column].std()
-    x[column] = (x[column] - mean) / std
+        mean = data[column].mean()
+        std = data[column].std()
+    data[column] = (data[column] - mean) / std
 
     if return_param:
-        return x, (mean, std)
-    return x
+        return data, (mean, std)
 
-def min_max(df, column, mini=None, maxi=None, return_param=False):
+    return data
+
+def min_max(data, column, mini=None, maxi=None, return_param=False):
     """
         Performs min-max normalization.
 
-        :param df: Data
+        :param data: Data
         :param column: Column to normalize
         :param mini: Minimum, computed if not specified
         :param maxi: Maximum, computed if not specified
@@ -36,12 +34,12 @@ def min_max(df, column, mini=None, maxi=None, return_param=False):
         :return: Normalized data
         :rtype: pd.DataFrame
     """
-    x = df.copy()
     if not mini and not maxi:
-        mini = x[column].min()
-        maxi = x[column].max()
-    x[column] = (x[column] - mini) / (maxi - mini)
+        mini = data[column].min()
+        maxi = data[column].max()
+    data[column] = (data[column] - mini) / (maxi - mini)
 
     if return_param:
-        return x, (mini, maxi)
-    return x
+        return data, (mini, maxi)
+        
+    return data

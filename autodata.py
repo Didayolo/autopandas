@@ -1,6 +1,7 @@
 # AutoData
 # Based on Pandas, numpy, sklearn, matplotlib
 
+# TODO #####################################
 # Read AutoML, CSV, TFRecords
 
 # Find an example CSV with :
@@ -15,6 +16,9 @@
 # Train, test, split
 # For each method (display, etc.) parameter "key" gives the wanted subset of data
 
+# infer CSV separator
+############################################
+
 # Imports
 import sys
 import pandas as pd
@@ -26,7 +30,6 @@ from sklearn.decomposition import PCA
 
 sys.path.append('utils')
 #import utilities
-#import processing
 import imputation
 import encoding
 import normalization
@@ -44,27 +47,22 @@ class AutoData(pd.DataFrame):
     """ AutoData class
     """
 
+    _metadata = ['indexes']
+    indexes = {'header':range(5)} # header, train, test, valid, X, y
+
     ## 1. #################### READ/WRITE DATA ######################
     def __init__(self, *args, **kwargs): # indexes = None
         """ Constructor
         """
         pd.DataFrame.__init__(self, *args, **kwargs)
-
         self.info = {}
-
-        # Initialize indexes
-        #if indexes is None:
-        _metadata = ['indexes']
-        self.indexes = {'header':range(5)} # header, train, test, valid, X, y
         self.get_types() # find categorical and numerical variables
 
-        # Copy indexes if already exists
-        #else:
-        #    self.indexes = indexes
 
     @property
     def _constructor(self):
         return AutoData
+
 
     def to_automl(self):
         pass
@@ -74,37 +72,44 @@ class AutoData(pd.DataFrame):
         self.indexes[key] = value
 
 
+    def get_index(self, key=None):
+        """ return rows, columns
+        """
+        if key is None:
+            rows = self.index
+            columns = list(self)
+            return rows, columns
+
+        elif key in ['train', 'valid', 'test', 'header']:
+            rows = self.indexes[key]
+            columns = list(self)
+
+        elif key in ['X', 'y', 'categorical', 'numerical']:
+            rows = self.index
+            columns = self.indexes[key]
+
+        elif '_' in key:
+            v, h = key.split('_')
+            rows = self.indexes[h]
+            columns = self.indexes[v]
+
+        else:
+            raise Exception('Unknown key.')
+
+        return rows, columns
+
+
     def get_data(self, key=None):
         """ Get data
             /!/ Return DataFrame in many case for now
             Corrected but not optimized !
         """
-        if key is None:
-            return self
-
-        elif key in ['train', 'valid', 'test', 'header']:
-            return self.iloc[self.indexes[key]]
-            #return AutoData(self.iloc[self.indexes[key]], indexes=self.indexes)
-
-        elif key in ['X', 'y', 'categorical', 'numerical']:
-            return self.loc[:, self.indexes[key]]
-            #return AutoData(self.loc[:, self.indexes[key]], indexes=self.indexes)
-
-        elif '_' in key:
-            # X_train, y_test, etc.
-            v, h = key.split('_')
-            hindex = self.indexes[h]
-            vindex = self.indexes[v]
-            return self.loc[hindex, vindex]
-            #return AutoData(self.loc[hindex, vindex], indexes=self.indexes)
-
-        else:
-            raise Exception('Unknown key.')
+        return self.loc[self.get_index(key)]
 
 
     def get_types(self):
-        """ Get variables types: Numeric or Categorical.
-            Save it as indexes with key 'numerical' and 'categorical'.
+        """ Compute variables types: Numeric or Categorical.
+            This information is then stored as indexes with key 'numerical' and 'categorical'.
         """
         N = self.shape[0]
         prop = int(N / 25) # Arbitrary proportion of different values where a numerical variable is considered categorical
@@ -123,11 +128,16 @@ class AutoData(pd.DataFrame):
         self.indexes['categorical'] = categorical_index
         self.indexes['numerical'] = numerical_index
 
+
+        def merge(data):
+            pass
+
     ## 2. ###################### PROCESSINGS #########################
     # Imputation, encoding, normalization
 
     def train_test_split(self, test_size=0.3, shuffle=True):
         """ Procedure
+            TODO shuffle
         """
         N = self.shape[0]
         split = round(N * (1 - test_size))
@@ -151,19 +161,14 @@ class AutoData(pd.DataFrame):
         self.set_index('X', X)
 
 
-    def imputation(self, method, key=None):
+    def imputation(self, method='most', key=None):
         """ Impute missing values.
             :param method: None, 'remove', 'most', 'mean', 'median'
             :return: Data with imputed values.
             :rtype: AutoData
         """
         data = self.get_data()
-
-        if key is None:
-            columns = list(data)
-
-        else:
-            columns = self.indexes[key]
+        rows, columns = self.get_index(key)
 
         for column in columns:
             if method == 'remove':
@@ -184,16 +189,33 @@ class AutoData(pd.DataFrame):
         return data
 
 
-    def normalization(self, method):
+    def normalization(self, method='standard', key=None):
         """ Normalize data.
             :param method: 'standard', 'min-max', None
             :return: Normalized data.
             :rtype: AutoData
         """
-        pass
+        data = self.get_data()
+        rows, columns = self.get_index(key)
+
+        for column in columns:
+            if method == 'standard':
+                data = normalization.standard(data, column)
+
+                # TODO:
+                #train, (mean, std) = normalization.standard(train, column, return_param=True)
+                #test = normalization.standard(test, column, mean, std)
+
+            elif method in ['min-max', 'minmax', 'min_max']:
+                data = normalization.min_max(data, column)
+
+            else:
+                raise Exception('Unknown normalization method: {}'.format(method))
+
+        return data
 
 
-    def encoding(self, method, key=None):
+    def encoding(self, method='label', key=None):
         """ Encode categorical variables.
             :param method: 'none', 'label', 'one-hot', 'rare-one-hot', 'target', 'likelihood', 'count', 'probability'
             :param target: Target column name (target encoding).
@@ -201,12 +223,7 @@ class AutoData(pd.DataFrame):
                           A rare category occurs less than the (average number of occurrence * coefficient).
         """
         data = self.get_data()
-
-        if key is None:
-            columns = list(data)
-
-        else:
-            columns = self.indexes[key]
+        rows, columns = self.get_index(key)
 
         for column in columns:
             data = encoding.label(data, column)
@@ -238,11 +255,12 @@ class AutoData(pd.DataFrame):
 
         return pca, X
 
+
     def show_pca():
         pass
 
 
-    def plot(self, key=None, max_features=20):
+    def plot(self, key=None, max_features=16):
         """ Show feature pairplots.
             TODO be able to pass column name ??
         """
