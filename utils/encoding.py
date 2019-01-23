@@ -18,13 +18,13 @@ import copy
 from gensim.models.word2vec import Word2Vec
 from random import shuffle
 
-def none(x, column):
-    """ Remove column from x
+def none(data, column):
+    """ Remove column from data
     """
-    x.drop([column], axis=1, inplace=True)
-    return x
+    data.drop([column], axis=1, inplace=True)
+    return data
 
-def label(x, column):
+def label(data, column):
     """
         Performs label encoding.
         Example:
@@ -32,14 +32,13 @@ def label(x, column):
             is encoded by
             Color: [1, 2, 1, 3]
 
-        :param df: Data
+        :param data: Data
         :param column: Column to encode
         :return: Encoded data
         :rtype: pd.DataFrame
     """
-    x[column] = x[column].astype('category').cat.codes
-
-    return x
+    data[column] = data[column].astype('category').cat.codes
+    return data
 
 def one_hot(x, column, rare=False, coeff=0.1):
     """

@@ -40,7 +40,7 @@ def most(data, column):
         :return: Imputed data
         :rtype: AutoData
     """
-    x = data.copy()
-    most_frequent_value = x[column].value_counts().idxmax()
-    x[column] = x[column].fillna(most_frequent_value)
-    return x
+    #x = data.copy() # maybe needed ?
+    most_frequent_value = data[column].value_counts().idxmax()
+    data[column] = data[column].fillna(most_frequent_value)
+    return data

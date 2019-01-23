@@ -31,6 +31,10 @@ import imputation
 import encoding
 import normalization
 
+import warnings
+if not sys.warnoptions:
+    warnings.simplefilter("ignore")
+
 
 def read_csv(*args, **kwargs):
     return AutoData(pd.read_csv(*args, **kwargs))
@@ -39,19 +43,27 @@ def read_automl():
     pass
 
 # Surcouche de pd.DataFrame
+# WARNING column names must be different from attribute names
 class AutoData(pd.DataFrame):
     """ AutoData class
     """
 
     ## 1. #################### READ/WRITE DATA ######################
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, indexes=None, **kwargs):
         """ Constructor
         """
         pd.DataFrame.__init__(self, *args, **kwargs)
 
         self.info = {}
-        self.indexes = {'header':range(5)} # header, train, test, valid, X, y
-        self.get_types() # find categorical and numerical variables
+
+        # Initialize indexes
+        if indexes is None:
+            self.indexes = {'header':range(5)} # header, train, test, valid, X, y
+            self.get_types() # find categorical and numerical variables
+
+        # Copy indexes if already exists
+        else:
+            self.indexes = indexes
 
     def to_automl(self):
         pass
@@ -63,22 +75,24 @@ class AutoData(pd.DataFrame):
 
     def get_data(self, key=None):
         """ Get data
+            /!/ Return DataFrame in many case for now
+            Corrected but not optimized !
         """
         if key is None:
             return self
 
         elif key in ['train', 'valid', 'test', 'header']:
-            return self.iloc[self.indexes[key]]
+            return AutoData(self.iloc[self.indexes[key]], indexes=self.indexes)
 
         elif key in ['X', 'y', 'categorical', 'numerical']:
-            return self.loc[:, self.indexes[key]]
+            return AutoData(self.loc[:, self.indexes[key]], indexes=self.indexes)
 
         elif '_' in key:
             # X_train, y_test, etc.
             v, h = key.split('_')
             hindex = self.indexes[h]
             vindex = self.indexes[v]
-            return self.loc[hindex, vindex]
+            return AutoData(self.loc[hindex, vindex], indexes=self.indexes)
 
         else:
             raise Exception('Unknown key.')
@@ -89,7 +103,7 @@ class AutoData(pd.DataFrame):
             Save it as indexes with key 'numerical' and 'categorical'.
         """
         N = self.shape[0]
-        prop = int(N / 10) # Arbitrary proportion of different values where a numerical variable is considered categorical
+        prop = int(N / 25) # Arbitrary proportion of different values where a numerical variable is considered categorical
 
         categorical_index = []
         numerical_index = []
@@ -120,7 +134,7 @@ class AutoData(pd.DataFrame):
     def set_class(self, y):
         """ Procedure
         """
-        self.set_index('y', y)
+        self.set_index('y', [y])
         X = list(self) # column names
 
         if isinstance(y, str) or isinstance(y, int):
@@ -139,11 +153,26 @@ class AutoData(pd.DataFrame):
             :return: Data with imputed values.
             :rtype: AutoData
         """
-        data = self.get_data(key=key)
+        data = self.get_data()
 
-        for column in list(data):
-            if method == 'mean':
+        if key is None:
+            columns = list(data)
+
+        else:
+            columns = self.indexes[key]
+
+        for column in columns:
+            if method == 'remove':
+                data = imputation.remove(data, column)
+
+            elif method == 'most':
+                data = imputation.most(data, column)
+
+            elif method == 'mean':
                 data = imputation.mean(data, column)
+
+            elif method == 'median':
+                data = imputation.median(data, column)
 
             else:
                 raise Exception('Unknown imputation method: {}'.format(method))
@@ -160,14 +189,25 @@ class AutoData(pd.DataFrame):
         pass
 
 
-    def encoding(self, method):
+    def encoding(self, method, key=None):
         """ Encode categorical variables.
             :param method: 'none', 'label', 'one-hot', 'rare-one-hot', 'target', 'likelihood', 'count', 'probability'
             :param target: Target column name (target encoding).
             :param coeff: Coefficient defining rare values (rare one-hot encoding).
                           A rare category occurs less than the (average number of occurrence * coefficient).
         """
-        pass
+        data = self.get_data()
+
+        if key is None:
+            columns = list(data)
+
+        else:
+            columns = self.indexes[key]
+
+        for column in columns:
+            data = encoding.label(data, column)
+
+        return data
 
 
     ## 3. ###################### VISUALIZATION #######################
@@ -194,21 +234,41 @@ class AutoData(pd.DataFrame):
 
         return pca, X
 
-
-    def pairplot():
+    def show_pca():
         pass
 
 
+    def plot(self, key=None, max_features=20):
+        """ Show feature pairplots.
+            TODO be able to pass column name ??
+        """
+        feat_num = self.shape[1]
+        if feat_num < max_features: # TODO selection, plot with y
+            sns.set(style="ticks")
+            print('{} set plot'.format(key))
+            data = self.get_data(key)
+            sns.pairplot(data)
+            plt.show()
+        else:
+            print('Too much features to pairplot. Number of features: {}, max features to plot set at: {}'.format(feat_num, max_features))
+
+
     ## 4. ######################## BENCHMARK ##########################
-    def score(self, clf=RandomForestClassifier, metric=None):
-        if 'test' not in self.esets:
+    def score(self, clf=RandomForestClassifier(), metric=None):
+        """ Detect task /!/
+            Classification / Regression
+        """
+        if 'test' not in self.indexes:
             raise Exception('No train/test split.')
 
-        elif 'y' not in self.fsets:
+        elif 'y' not in self.indexes:
             raise Exception('No class.')
 
         # Let's go!
         else:
-            X = self.get_data('X')
-            y = self.get_data('y')
-            clf.fit(X, y)
+            X_train = self.get_data('X_train')
+            y_train = self.get_data('y_train')
+            X_test = self.get_data('X_test')
+            y_test = self.get_data('y_test')
+            clf.fit(X_train, y_train.values.ravel())
+            return clf.score(X_test, y_test.values.ravel())
