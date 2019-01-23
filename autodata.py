@@ -2,21 +2,13 @@
 # Based on Pandas, numpy, sklearn, matplotlib
 
 # TODO #####################################
-# Read AutoML, CSV, TFRecords
-
 # Find an example CSV with :
 # Categorical, numerical and missing values
 
-# Simplification (une méthode par affichage, traitement, etc)
+# Simplify AutoML (une méthode par affichage, traitement, etc)
 # Le notebook appelle chaque méthode avec une explication
-# Transformations : méthodes qui renvoie un objet AutoML (pas de duplication systématique des données)
 
-# Init info, etc.
-# Detect task : y in numerical or in categorical
-# Train, test, split
 # For each method (display, etc.) parameter "key" gives the wanted subset of data
-
-# infer CSV separator
 ############################################
 
 # Imports
@@ -25,6 +17,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
 
 from sklearn.decomposition import PCA
 
@@ -44,16 +37,21 @@ def read_automl():
 
 
 class AutoData(pd.DataFrame):
-    """ AutoData class
+    """ AutoData is a data structure extending Pandas Dataframe.
+        Its objective is to allow to quickly get to grips with a dataset.
     """
 
     _metadata = ['indexes']
     indexes = {'header':range(5)} # header, train, test, valid, X, y
 
     ## 1. #################### READ/WRITE DATA ######################
+
+    # TODO
+    # Read AutoML, CSV, TFRecords
+    # Infer CSV separator
+    # Init info, etc.
+
     def __init__(self, *args, **kwargs): # indexes = None
-        """ Constructor
-        """
         pd.DataFrame.__init__(self, *args, **kwargs)
         self.info = {}
         self.get_types() # find categorical and numerical variables
@@ -73,7 +71,7 @@ class AutoData(pd.DataFrame):
 
 
     def get_index(self, key=None):
-        """ return rows, columns
+        """ Return rows, columns
         """
         if key is None:
             rows = self.index
@@ -101,8 +99,6 @@ class AutoData(pd.DataFrame):
 
     def get_data(self, key=None):
         """ Get data
-            /!/ Return DataFrame in many case for now
-            Corrected but not optimized !
         """
         return self.loc[self.get_index(key)]
 
@@ -129,13 +125,31 @@ class AutoData(pd.DataFrame):
         self.indexes['numerical'] = numerical_index
 
 
+    def get_task(self):
+        """ TODO: multiclass?
+        """
+        if 'y' in self.indexes.keys():
+            for c in self.indexes['y']:
+                if c in self.indexes['numerical']:
+                    return 'regression'
+
+            else:
+                return 'classification'
+
+        else:
+            raise Exception('No class is defined. Please use set_class method to define one.')
+
         def merge(data):
             pass
 
     ## 2. ###################### PROCESSINGS #########################
     # Imputation, encoding, normalization
 
-    def train_test_split(self, test_size=0.3, shuffle=True):
+    # TODO
+    # Avoid data leakage during processing
+    # train/test/valid split shuffle
+
+    def train_test_split(self, test_size=0.3, shuffle=True, valid=False, valid_size=0.1):
         """ Procedure
             TODO shuffle
         """
@@ -147,14 +161,18 @@ class AutoData(pd.DataFrame):
 
     def set_class(self, y):
         """ Procedure
+            Define the column(s) representing a class (y).
         """
-        self.set_index('y', [y])
         X = list(self) # column names
 
+        # y is 1 column
         if isinstance(y, str) or isinstance(y, int):
+            self.set_index('y', [y])
             X.remove(y)
 
+        # y is array-like
         else:
+            self.set_index('y', y)
             for name in y:
                 X.remove(name)
 
@@ -232,6 +250,9 @@ class AutoData(pd.DataFrame):
 
 
     ## 3. ###################### VISUALIZATION #######################
+
+    # TODO
+
     def pca(self, verbose=False, **kwargs):
         """
             Compute PCA.
@@ -276,10 +297,23 @@ class AutoData(pd.DataFrame):
 
 
     ## 4. ######################## BENCHMARK ##########################
-    def score(self, clf=RandomForestClassifier(), metric=None):
-        """ Detect task /!/
-            Classification / Regression
+
+    # TODO
+    # Score reports, confusion matrix
+
+    def score(self, model=None, metric=None):
+        """ Benchmark ...
         """
+        if model is None:
+            if self.get_task() == 'classification':
+                model = RandomForestClassifier()
+
+            elif self.get_task() == 'regression':
+                model = RandomForestRegressor()
+
+            else:
+                raise 'Unknown task.'
+
         if 'test' not in self.indexes:
             raise Exception('No train/test split.')
 
@@ -292,5 +326,11 @@ class AutoData(pd.DataFrame):
             y_train = self.get_data('y_train')
             X_test = self.get_data('X_test')
             y_test = self.get_data('y_test')
-            clf.fit(X_train, y_train.values.ravel())
-            return clf.score(X_test, y_test.values.ravel())
+
+            # mono-class
+            if y_train.shape[1] == 1:
+                y_train = y_train.values.ravel()
+                y_test = y_test.values.ravel()
+
+            model.fit(X_train, y_train)
+            return model.score(X_test, y_test)
