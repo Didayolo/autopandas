@@ -2,6 +2,8 @@
 # Based on Pandas, numpy, sklearn, matplotlib
 
 # TODO #####################################
+# :param key: on documentation
+
 # Find an example CSV with :
 # Categorical, numerical and missing values
 
@@ -14,21 +16,18 @@
 # Imports
 import sys
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import RandomForestRegressor
-
-from sklearn.decomposition import PCA
 
 sys.path.append('utils')
-#import utilities
 import imputation
 import encoding
 import normalization
+import reduction
+import visualization
+import benchmark
 
 
 def read_csv(*args, **kwargs):
+    # Infer CSV separator: sep=None, engine='python'
     return AutoData(pd.read_csv(*args, **kwargs))
 
 
@@ -48,8 +47,7 @@ class AutoData(pd.DataFrame):
 
     # TODO
     # Read AutoML, CSV, TFRecords
-    # Infer CSV separator
-    # Init info, etc.
+    # Init info, etc. (AutoML info)
 
     def __init__(self, *args, **kwargs): # indexes = None
         pd.DataFrame.__init__(self, *args, **kwargs)
@@ -139,8 +137,18 @@ class AutoData(pd.DataFrame):
         else:
             raise Exception('No class is defined. Please use set_class method to define one.')
 
-        def merge(data):
-            pass
+
+    def add(self, data):
+        """ Combine rows of two AutoData objects: self and data.
+        """
+        return pd.concat([self, data])
+
+
+    def merge(self, data):
+        """ Same indexes but data is a modified part of self.
+        """
+        pass
+
 
     ## 2. ###################### PROCESSINGS #########################
     # Imputation, encoding, normalization
@@ -148,6 +156,7 @@ class AutoData(pd.DataFrame):
     # TODO
     # Avoid data leakage during processing
     # train/test/valid split shuffle
+    # Dimensionality reduction (method) (only on X)
 
     def train_test_split(self, test_size=0.3, shuffle=True, valid=False, valid_size=0.1):
         """ Procedure
@@ -155,8 +164,14 @@ class AutoData(pd.DataFrame):
         """
         N = self.shape[0]
         split = round(N * (1 - test_size))
-        self.set_index('train', range(split))
-        self.set_index('test', range(split, N))
+
+        train_index = range(split)
+        valid_index = []
+        test_index = range(split, N-1)
+
+        self.set_index('train', train_index)
+        self.set_index('valid', valid_index)
+        self.set_index('test', test_index)
 
 
     def set_class(self, y):
@@ -249,88 +264,104 @@ class AutoData(pd.DataFrame):
         return data
 
 
-    ## 3. ###################### VISUALIZATION #######################
-
-    # TODO
-
-    def pca(self, verbose=False, **kwargs):
+    def pca(self, key=None, verbose=False, **kwargs):
         """
             Compute PCA.
             :param verbose: Display additional information during run
             :param **kwargs: Additional parameters for PCA (see sklearn doc)
-            :return: Tuple (pca, X) containing a PCA object (see sklearn doc) and the transformed data
-            :rtype: Tuple
+            :return: Transformed data
+            :rtype: AutoData
         """
-        pca = PCA(**kwargs)
-        X = pca.fit_transform(self)
-
-        print('Explained variance ratio of the {} components: \n {}'.format(pca.n_components_,
-                                                                            pca.explained_variance_ratio_))
-        if verbose:
-            plt.bar(left=range(pca.n_components_),
-                    height=pca.explained_variance_ratio_,
-                    width=0.3,
-                    tick_label=range(pca.n_components_))
-            plt.title('Explained variance ratio by principal component')
-            plt.show()
-
-        return pca, X
+        return AutoData(reduction.pca(self, key=key, verbose=verbose, **kwargs))
 
 
-    def show_pca():
-        pass
-
-
-    def plot(self, key=None, max_features=16):
-        """ Show feature pairplots.
-            TODO be able to pass column name ??
+    def tsne(self, key=None, verbose=False, **kwargs):
         """
-        feat_num = self.shape[1]
-        if feat_num < max_features: # TODO selection, plot with y
-            sns.set(style="ticks")
-            print('{} set plot'.format(key))
-            data = self.get_data(key)
-            sns.pairplot(data)
-            plt.show()
+            Compute T-SNE.
+            :param verbose: Display additional information during run
+            :param **kwargs: Additional parameters for T-SNE (see sklearn doc)
+            :return: Transformed data
+            :rtype: AutoData
+        """
+        return AutoData(reduction.tsne(self, key=key, verbose=verbose, **kwargs))
+
+
+    def lda(self, key=None, verbose=False, **kwargs):
+        """
+            Compute Linear Discriminant Analysis.
+            :param verbose: Display additional information during run
+            :param **kwargs: Additional parameters for LDA (see sklearn doc)
+            :return: Transformed data
+            :rtype: AutoData
+        """
+        return AutoData(reduction.lda(self, key=key, verbose=verbose, **kwargs))
+
+
+    def reduction(self, method='pca', key=None, verbose=False, **kwargs):
+        """ Dimensionality reduction
+            method: pca, lda, tsne
+        """
+        data = self.get_data(key)
+
+        if method == 'pca':
+            data = data.pca(key=key, verbose=verbose, **kwargs)
+
+        elif method == 'tsne':
+            data = data.tsne(key=key, verbose=verbose, **kwargs)
+
+        elif method == 'lda':
+            data = data.lda(key=key, verbose=verbose, **kwargs)
+
         else:
-            print('Too much features to pairplot. Number of features: {}, max features to plot set at: {}'.format(feat_num, max_features))
+            raise Exception('Unknown dimensionality reduction method: {}'.format(method))
+
+        return data
+
+
+    ## 3. ###################### VISUALIZATION #######################
+
+    # TODO
+    # Class coloration on plots!
+
+
+    def plot(self, key=None, max_features=12, **kwargs):
+        """ Show feature pairplots.
+            TODO be able to pass column name ?
+            Automatic selection ?
+        """
+        visualization.plot(self, key=key, max_features=max_features, **kwargs)
+
+
+    def plot_pca(self, key):
+        self.pca(key, n_components=2).plot()
+
+
+    def heatmap(self, **kwargs):
+        visualization.heatmap(self, **kwargs)
+
+
+    def correlation(self, **kwargs):
+        visualization.correlation(self, **kwargs)
 
 
     ## 4. ######################## BENCHMARK ##########################
 
     # TODO
+    # Different scoring metrics
     # Score reports, confusion matrix
+    # Model selection
+    # Model tuning
 
     def score(self, model=None, metric=None):
         """ Benchmark ...
         """
-        if model is None:
-            if self.get_task() == 'classification':
-                model = RandomForestClassifier()
+        return benchmark.score(self, model=model, metric=metric)
 
-            elif self.get_task() == 'regression':
-                model = RandomForestRegressor()
 
-            else:
-                raise 'Unknown task.'
-
-        if 'test' not in self.indexes:
-            raise Exception('No train/test split.')
-
-        elif 'y' not in self.indexes:
-            raise Exception('No class.')
-
-        # Let's go!
-        else:
-            X_train = self.get_data('X_train')
-            y_train = self.get_data('y_train')
-            X_test = self.get_data('X_test')
-            y_test = self.get_data('y_test')
-
-            # mono-class
-            if y_train.shape[1] == 1:
-                y_train = y_train.values.ravel()
-                y_test = y_test.values.ravel()
-
-            model.fit(X_train, y_train)
-            return model.score(X_test, y_test)
+    #################### ALIAS #######################
+    # How to automate this ?
+    # __getattr__ ?
+    # Need to think about this
+    #X(), y(), X_train, y_test, numerical, header, etc.
+    # set_X ?
+    ##################################################
