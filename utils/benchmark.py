@@ -3,6 +3,7 @@
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 
+
 def score(data, model=None, metric=None):
     """ Benchmark ...
     """

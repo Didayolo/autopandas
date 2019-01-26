@@ -1,7 +1,8 @@
 # AutoData
-# Based on Pandas, numpy, sklearn, matplotlib
+# Based on pandas, numpy, sklearn, matplotlib and seaborn
 
 # TODO #####################################
+# Documentation
 # :param key: on documentation
 
 # Find an example CSV with :
@@ -24,6 +25,7 @@ import normalization
 import reduction
 import visualization
 import benchmark
+import metric
 
 
 def read_csv(*args, **kwargs):
@@ -47,7 +49,7 @@ class AutoData(pd.DataFrame):
 
     # TODO
     # Read AutoML, CSV, TFRecords
-    # Init info, etc. (AutoML info)
+    # Init/save info, etc. (AutoML info)
 
     def __init__(self, *args, **kwargs): # indexes = None
         pd.DataFrame.__init__(self, *args, **kwargs)
@@ -356,6 +358,14 @@ class AutoData(pd.DataFrame):
         """ Benchmark ...
         """
         return benchmark.score(self, model=model, metric=metric)
+
+
+    # Distribution comparator
+    def distance(self, data, method=None):
+        """ Distance between two AutoData frames.
+            There is a lot of methods to add (cf. utilities.py and metric.py)
+        """
+        return metric.nn_discrepancy(self, data)
 
 
     #################### ALIAS #######################

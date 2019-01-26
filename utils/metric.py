@@ -1,9 +1,11 @@
+# Distance metric functions
+
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from scipy.spatial.distance import pdist, cdist, squareform
-from scipy.stats import ks_2samp 
+from scipy.stats import ks_2samp
 from sklearn.utils import resample, shuffle
 from sklearn.neighbors import NearestNeighbors
 import itertools
@@ -11,7 +13,7 @@ import itertools
 def distance(x, y, axis=None, norm='manhattan'):
     """
         Compute the distance between x and y.
-        
+
         :param x: Array-like, first point
         :param y: Array-like, second point
         :param axis: Axis of x along which to compute the vector norms.
@@ -43,7 +45,7 @@ def distance_correlation(X, Y):
     """
         Compute the distance correlation function.
         Works with X and Y of different dimensions (but same number of samples mandatory).
-        
+
         :param X: Data
         :param y: Class data
         :return: Distance correlation
@@ -72,7 +74,7 @@ def distance_correlation(X, Y):
     return dcor
 
 def relief_divergence(X1, X2):
-    ''' Divergence based on ( dist_to_nearest_miss - dist_to_nearest_hit )'''    
+    ''' Divergence based on ( dist_to_nearest_miss - dist_to_nearest_hit )'''
     p1, n = X1.shape
     p2, nn = X2.shape
     assert(n==nn)
@@ -101,7 +103,7 @@ def acc_stat (solution, prediction):
     #print "FP =",FP
     #print "TP =",TP
     #print "FN =",FN
-    return (TN, FP, TP, FN) 
+    return (TN, FP, TP, FN)
 
 def bac_metric (solution, prediction):
     ''' Compute the balanced accuracy for binary classification. '''
@@ -132,7 +134,7 @@ def nn_discrepancy(X1, X2):
     return max(0, 2*bac_metric(Y, Ypred)-1)
 
 def ks_test(X1, X2):
-    ''' Paired Kolmogorov-Smirnov test for all matched pairs of variables in matrices X1 and X2.'''    
+    ''' Paired Kolmogorov-Smirnov test for all matched pairs of variables in matrices X1 and X2.'''
     n =X1.shape[1]
     ks=np.zeros(n)
     pval=np.zeros(n)
@@ -154,7 +156,7 @@ def maximum_mean_discrepancy(A, B):
         # exponent entries of the RBF kernel (without the sigma) for each
         # combination of the rows in 'X'
         # -0.5 * (i^Ti - 2*i^Tj + j^Tj)
-        
+
         #exponent = XX - 0.5 * (X2.expand_as(XX) + X2.t().expand_as(XX))
 
         #lossMMD = np.sum(self.S * sum([(exponent * (1./bandwith)).exp() for bandwith in self.bandwiths]))

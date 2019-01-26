@@ -4,6 +4,7 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
+
 def pca(data, key=None, verbose=False, **kwargs):
     """
         Compute PCA.

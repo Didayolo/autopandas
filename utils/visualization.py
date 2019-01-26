@@ -3,6 +3,7 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+
 def plot(data, key=None, max_features=12, **kwargs):
     """ Show feature pairplots.
         TODO be able to pass column name ?
