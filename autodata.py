@@ -4,20 +4,19 @@
 # TODO #####################################
 # Documentation
 # :param key: on documentation
-
-# Find an example CSV with :
-# Categorical, numerical and missing values
-
-# Simplify AutoML (une méthode par affichage, traitement, etc)
-# Le notebook appelle chaque méthode avec une explication
+# Add explanations in the notebook
 
 # For each method (display, etc.) parameter "key" gives the wanted subset of data
 ############################################
 
 # Imports
+import os
 import sys
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 import pandas as pd
 
+# Import project files
 sys.path.append('utils')
 import imputation
 import encoding
@@ -30,16 +29,39 @@ import metric
 
 def read_csv(*args, **kwargs):
     # Infer CSV separator: sep=None, engine='python'
-    return AutoData(pd.read_csv(*args, **kwargs))
+    return AutoData(pd.read_csv(*args, **kwargs), reset=True)
 
 
-def read_automl():
-    pass
+def read_automl(input_dir, basename):
+    """ Read files in AutoML format.
+        TODO
+    """
+
+    feat_name_file = os.path.join(input_dir, basename + '_feat.name')
+    feat_name = pd.read_csv(feat_name_file, header=None).values.ravel() if os.path.exists(feat_name_file) else None
+
+    label_name_file = os.path.join(input_dir, basename + '_label.name')
+    label_name = pd.read_csv(label_name_file, header=None).values.ravel() if os.path.exists(label_name_file) else None
+
+    # if exists
+    if os.path.exists(os.path.join(input_dir, basename + '.data')):
+
+        # read .data and .solution
+        pd.read_csv(filepath, sep=' ', header=None)
+
+    # create AutoData object
+    data = AutoData(df, reset=True)
+
+    # class ?
+    data.set_class()
+
+    # train/valid/test ?
+    data.indexes['train'] = [0]
 
 
 class AutoData(pd.DataFrame):
     """ AutoData is a data structure extending Pandas Dataframe.
-        Its objective is to allow to quickly get to grips with a dataset.
+        The goal is to quickly get to grips with a dataset.
     """
 
     _metadata = ['indexes']
@@ -48,13 +70,18 @@ class AutoData(pd.DataFrame):
     ## 1. #################### READ/WRITE DATA ######################
 
     # TODO
-    # Read AutoML, CSV, TFRecords
+    # Read AutoML, TFRecords
     # Init/save info, etc. (AutoML info)
 
-    def __init__(self, *args, **kwargs): # indexes = None
+    def __init__(self, *args, reset=False, **kwargs): # indexes = None
         pd.DataFrame.__init__(self, *args, **kwargs)
-        self.info = {}
-        self.get_types() # find categorical and numerical variables
+        # self.info = {}
+
+        #self.indexes = {'header':range(5)}
+
+        if 'numerical' not in self.indexes.keys() or reset:
+            # find categorical and numerical variables
+            self.get_types()
 
 
     @property
@@ -76,14 +103,13 @@ class AutoData(pd.DataFrame):
         if key is None:
             rows = self.index
             columns = list(self)
-            return rows, columns
 
         elif key in ['train', 'valid', 'test', 'header']:
             rows = self.indexes[key]
-            columns = list(self)
+            columns = list(self) # all features
 
         elif key in ['X', 'y', 'categorical', 'numerical']:
-            rows = self.index
+            rows = self.index # all rows
             columns = self.indexes[key]
 
         elif '_' in key:
@@ -274,7 +300,7 @@ class AutoData(pd.DataFrame):
             :return: Transformed data
             :rtype: AutoData
         """
-        return AutoData(reduction.pca(self, key=key, verbose=verbose, **kwargs))
+        return AutoData(reduction.pca(self, key=key, verbose=verbose, **kwargs)) #, reset=True)
 
 
     def tsne(self, key=None, verbose=False, **kwargs):
@@ -285,7 +311,7 @@ class AutoData(pd.DataFrame):
             :return: Transformed data
             :rtype: AutoData
         """
-        return AutoData(reduction.tsne(self, key=key, verbose=verbose, **kwargs))
+        return AutoData(reduction.tsne(self, key=key, verbose=verbose, **kwargs)) #, reset=True)
 
 
     def lda(self, key=None, verbose=False, **kwargs):
@@ -296,7 +322,7 @@ class AutoData(pd.DataFrame):
             :return: Transformed data
             :rtype: AutoData
         """
-        return AutoData(reduction.lda(self, key=key, verbose=verbose, **kwargs))
+        return AutoData(reduction.lda(self, key=key, verbose=verbose, **kwargs)) #, reset=True)
 
 
     def reduction(self, method='pca', key=None, verbose=False, **kwargs):
@@ -354,10 +380,10 @@ class AutoData(pd.DataFrame):
     # Model selection
     # Model tuning
 
-    def score(self, model=None, metric=None):
+    def score(self, model=None, metric=None, method='baseline'):
         """ Benchmark ...
         """
-        return benchmark.score(self, model=model, metric=metric)
+        return benchmark.score(self, model=model, metric=metric, method=method)
 
 
     # Distribution comparator

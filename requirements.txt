@@ -1,6 +1,8 @@
 pandas
+cython
 numpy
-sklearn
 matplotlib
 seaborn
+sklearn
+auto-sklearn
 #scipy

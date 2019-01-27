@@ -2,20 +2,36 @@
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
+from autosklearn.classification import AutoSklearnClassifier
+from autosklearn.regression import AutoSklearnRegressor
 
-
-def score(data, model=None, metric=None):
+def score(data, model=None, metric=None, method='baseline'):
     """ Benchmark ...
     """
     if model is None:
-        if data.get_task() == 'classification':
-            model = RandomForestClassifier()
 
-        elif data.get_task() == 'regression':
-            model = RandomForestRegressor()
+        # Select model
+        if method == 'baseline':
+            clf = RandomForestClassifier()
+            reg = RandomForestRegressor()
+
+        elif method in ['autosklearn', 'automl', 'automatic']:
+            clf = AutoSklearnClassifier()
+            reg = AutoSklearnRegressor() # multi-ouput ??
 
         else:
-            raise Exception('Unknown task.')
+            raise Exception('Unknown method: {}'.format(method))
+
+        # Select task
+        task = data.get_task()
+        if  task == 'classification':
+            model = clf
+
+        elif task == 'regression':
+            model = reg
+
+        else:
+            raise Exception('Unknown task: {}.'.format(task))
 
     if 'test' not in data.indexes:
         raise Exception('No train/test split. Please use train_test_split method before calling score.')
