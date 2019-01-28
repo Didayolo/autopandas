@@ -1,5 +1,5 @@
 # AutoData
-# Based on pandas, numpy, sklearn, matplotlib and seaborn
+# Based on pandas, numpy, sklearn, auto-sklearn, matplotlib and seaborn
 
 # TODO #####################################
 # Documentation
@@ -29,14 +29,15 @@ import metric
 
 def read_csv(*args, **kwargs):
     # Infer CSV separator: sep=None, engine='python'
-    return AutoData(pd.read_csv(*args, **kwargs), reset=True)
+    return AutoData(pd.read_csv(*args, **kwargs))
 
 
 def read_automl(input_dir, basename):
     """ Read files in AutoML format.
         TODO
     """
-
+    pass
+    """
     feat_name_file = os.path.join(input_dir, basename + '_feat.name')
     feat_name = pd.read_csv(feat_name_file, header=None).values.ravel() if os.path.exists(feat_name_file) else None
 
@@ -50,14 +51,14 @@ def read_automl(input_dir, basename):
         pd.read_csv(filepath, sep=' ', header=None)
 
     # create AutoData object
-    data = AutoData(df, reset=True)
+    data = AutoData(df)
 
     # class ?
     data.set_class()
 
     # train/valid/test ?
     data.indexes['train'] = [0]
-
+    """
 
 class AutoData(pd.DataFrame):
     """ AutoData is a data structure extending Pandas Dataframe.
@@ -65,7 +66,6 @@ class AutoData(pd.DataFrame):
     """
 
     _metadata = ['indexes']
-    indexes = {'header':range(5)} # header, train, test, valid, X, y
 
     ## 1. #################### READ/WRITE DATA ######################
 
@@ -73,20 +73,34 @@ class AutoData(pd.DataFrame):
     # Read AutoML, TFRecords
     # Init/save info, etc. (AutoML info)
 
-    def __init__(self, *args, reset=False, **kwargs): # indexes = None
+    def __init__(self, *args, indexes=None, **kwargs): # indexes = None
+
         pd.DataFrame.__init__(self, *args, **kwargs)
-        # self.info = {}
+        # self.info = {} # maybe for later
 
-        #self.indexes = {'header':range(5)}
+        # indexes ('X', 'y', 'train', 'categorical', 'y_test', etc.)
+        self.indexes = {'header':range(5)} if indexes is None else indexes
 
-        if 'numerical' not in self.indexes.keys() or reset:
-            # find categorical and numerical variables
+        # find categorical and numerical variables
+        if 'numerical' not in self.indexes.keys():
             self.get_types()
+
+        # train test split
+        if 'train' not in self.indexes.keys():
+            self.train_test_split()
 
 
     @property
     def _constructor(self):
         return AutoData
+
+
+    def copy(self):
+        """ Redefining copy to keep indexes from one to another.
+        """
+        data = pd.DataFrame.copy(self)
+        data.indexes = self.indexes.copy()
+        return data
 
 
     def to_automl(self):
@@ -123,10 +137,22 @@ class AutoData(pd.DataFrame):
         return rows, columns
 
 
+    def flush_index(self, key=None):
+        """ Delete useless indexes for a specific set.
+            For example:
+              key='X_train'
+              -> delete 'test' and 'y' indexes
+        """
+        pass
+
+
     def get_data(self, key=None):
         """ Get data
         """
-        return self.loc[self.get_index(key)]
+        data = self.loc[self.get_index(key)]
+        data.indexes = self.indexes
+        #data.flush_index(key)
+        return data
 
 
     def get_types(self):
@@ -228,7 +254,7 @@ class AutoData(pd.DataFrame):
             :return: Data with imputed values.
             :rtype: AutoData
         """
-        data = self.get_data()
+        data = self.copy()
         rows, columns = self.get_index(key)
 
         for column in columns:
@@ -256,7 +282,7 @@ class AutoData(pd.DataFrame):
             :return: Normalized data.
             :rtype: AutoData
         """
-        data = self.get_data()
+        data = self.copy()
         rows, columns = self.get_index(key)
 
         for column in columns:
@@ -283,7 +309,7 @@ class AutoData(pd.DataFrame):
             :param coeff: Coefficient defining rare values (rare one-hot encoding).
                           A rare category occurs less than the (average number of occurrence * coefficient).
         """
-        data = self.get_data()
+        data = self.copy()
         rows, columns = self.get_index(key)
 
         for column in columns:
@@ -300,7 +326,14 @@ class AutoData(pd.DataFrame):
             :return: Transformed data
             :rtype: AutoData
         """
-        return AutoData(reduction.pca(self, key=key, verbose=verbose, **kwargs)) #, reset=True)
+        data = self.copy()
+        rows, columns = data.get_index(key)
+        # compute PCA and copy indexes
+        data = AutoData(reduction.pca(data, key=key, verbose=verbose, **kwargs), indexes=data.indexes)
+        # variable are now only numerical
+        data.indexes['categorical'] = []
+        data.indexes['numerical'] = list(data)
+        return data
 
 
     def tsne(self, key=None, verbose=False, **kwargs):
@@ -311,7 +344,7 @@ class AutoData(pd.DataFrame):
             :return: Transformed data
             :rtype: AutoData
         """
-        return AutoData(reduction.tsne(self, key=key, verbose=verbose, **kwargs)) #, reset=True)
+        return AutoData(reduction.tsne(self, key=key, verbose=verbose, **kwargs))
 
 
     def lda(self, key=None, verbose=False, **kwargs):
@@ -322,7 +355,7 @@ class AutoData(pd.DataFrame):
             :return: Transformed data
             :rtype: AutoData
         """
-        return AutoData(reduction.lda(self, key=key, verbose=verbose, **kwargs)) #, reset=True)
+        return AutoData(reduction.lda(self, key=key, verbose=verbose, **kwargs))
 
 
     def reduction(self, method='pca', key=None, verbose=False, **kwargs):

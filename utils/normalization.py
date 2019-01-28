@@ -15,6 +15,7 @@ def standard(data, column, mean=None, std=None, return_param=False):
     if not mean and not std:
         mean = data[column].mean()
         std = data[column].std()
+        
     data[column] = (data[column] - mean) / std
 
     if return_param:
@@ -37,9 +38,10 @@ def min_max(data, column, mini=None, maxi=None, return_param=False):
     if not mini and not maxi:
         mini = data[column].min()
         maxi = data[column].max()
+
     data[column] = (data[column] - mini) / (maxi - mini)
 
     if return_param:
         return data, (mini, maxi)
-        
+
     return data
