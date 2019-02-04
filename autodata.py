@@ -60,6 +60,13 @@ def read_automl(input_dir, basename):
     data.indexes['train'] = [0]
     """
 
+
+def plot(ad1, ad2, **kwargs):
+    """ Alias for double plot.
+    """
+    ad1.plot(ad=ad2, **kwargs)
+
+
 class AutoData(pd.DataFrame):
     """ AutoData is a data structure extending Pandas Dataframe.
         The goal is to quickly get to grips with a dataset.
