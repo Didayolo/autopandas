@@ -192,14 +192,17 @@ class AutoData(pd.DataFrame):
             raise Exception('No class is defined. Please use set_class method to define one.')
 
 
-    def add(self, data):
-        """ Combine rows of two AutoData objects: self and data.
-        """
-        return pd.concat([self, data])
+    # already exists
+    # join for columns, append for rows
+    #def append(self, data):
+    #    """ Combine rows of two AutoData objects: self and data.
+    #    """
+    #    return pd.concat([self, data])
 
 
     def merge(self, data):
         """ Same indexes but data is a modified part of self.
+            Useless?
         """
         pass
 
@@ -228,14 +231,18 @@ class AutoData(pd.DataFrame):
         self.set_index('test', test_index)
 
 
-    def set_class(self, y):
+    def set_class(self, y=None):
         """ Procedure
             Define the column(s) representing a class (y).
         """
         X = list(self) # column names
 
+        # no class
+        if y is None:
+            self.set_index('y', [])
+
         # y is 1 column
-        if isinstance(y, str) or isinstance(y, int):
+        elif isinstance(y, str) or isinstance(y, int):
             self.set_index('y', [y])
             X.remove(y)
 
@@ -385,12 +392,12 @@ class AutoData(pd.DataFrame):
     # Class coloration on plots!
 
 
-    def plot(self, key=None, max_features=12, **kwargs):
+    def plot(self, key=None, ad=None, max_features=12, save=None, **kwargs):
         """ Show feature pairplots.
             TODO be able to pass column name ?
             Automatic selection ?
         """
-        visualization.plot(self, key=key, max_features=max_features, **kwargs)
+        visualization.plot(self, key=key, ad=ad, max_features=max_features, save=save, **kwargs)
 
 
     def plot_pca(self, key):
@@ -413,10 +420,10 @@ class AutoData(pd.DataFrame):
     # Model selection
     # Model tuning
 
-    def score(self, model=None, metric=None, method='baseline'):
+    def score(self, model=None, metric=None, method='baseline', fit=True):
         """ Benchmark ...
         """
-        return benchmark.score(self, model=model, metric=metric, method=method)
+        return benchmark.score(self, model=model, metric=metric, method=method, fit=fit)
 
 
     # Distribution comparator

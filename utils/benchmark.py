@@ -5,7 +5,7 @@ from sklearn.ensemble import RandomForestRegressor
 from autosklearn.classification import AutoSklearnClassifier
 from autosklearn.regression import AutoSklearnRegressor
 
-def score(data, model=None, metric=None, method='baseline'):
+def score(data, model=None, metric=None, method='baseline', fit=True):
     """ Benchmark ...
     """
     if model is None:
@@ -51,5 +51,8 @@ def score(data, model=None, metric=None, method='baseline'):
             y_train = y_train.values.ravel()
             y_test = y_test.values.ravel()
 
-        model.fit(X_train, y_train)
+        if fit:
+            model.fit(X_train, y_train)
+
+        # todo: different scoring metrics
         return model.score(X_test, y_test)
