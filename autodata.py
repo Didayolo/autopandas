@@ -2,11 +2,9 @@
 # Based on pandas, numpy, sklearn, auto-sklearn, matplotlib and seaborn
 
 # TODO #####################################
-# Documentation
-# :param key: on documentation
-# Add explanations in the notebook
-
-# For each method (display, etc.) parameter "key" gives the wanted subset of data
+# Documentation (on code and notebook)
+# Clean other modules
+# Check todo-lists below
 ############################################
 
 # Imports
@@ -149,12 +147,15 @@ class AutoData(pd.DataFrame):
             For example:
               key='X_train'
               -> delete 'test' and 'y' indexes
+
+            Maybe useless.
         """
         pass
 
 
     def get_data(self, key=None):
-        """ Get data
+        """ Get data.
+            :param key: wanted subset of data ('train', 'categorical_header', 'y', etc.)
         """
         data = self.loc[self.get_index(key)]
         data.indexes = self.indexes
@@ -199,13 +200,9 @@ class AutoData(pd.DataFrame):
             raise Exception('No class is defined. Please use set_class method to define one.')
 
 
-    # already exists
-    # join for columns, append for rows
-    #def append(self, data):
-    #    """ Combine rows of two AutoData objects: self and data.
-    #    """
-    #    return pd.concat([self, data])
-
+    # memo
+    # to concat df by columns: join
+    # to concat df by rows: append
 
     def merge(self, data):
         """ Same indexes but data is a modified part of self.
@@ -224,7 +221,7 @@ class AutoData(pd.DataFrame):
 
     def train_test_split(self, test_size=0.3, shuffle=True, valid=False, valid_size=0.1):
         """ Procedure
-            TODO shuffle
+            TODO: shuffle
         """
         N = self.shape[0]
         split = round(N * (1 - test_size))
@@ -333,8 +330,7 @@ class AutoData(pd.DataFrame):
 
 
     def pca(self, key=None, verbose=False, **kwargs):
-        """
-            Compute PCA.
+        """ Compute PCA.
             :param verbose: Display additional information during run
             :param **kwargs: Additional parameters for PCA (see sklearn doc)
             :return: Transformed data
@@ -351,8 +347,7 @@ class AutoData(pd.DataFrame):
 
 
     def tsne(self, key=None, verbose=False, **kwargs):
-        """
-            Compute T-SNE.
+        """ Compute T-SNE.
             :param verbose: Display additional information during run
             :param **kwargs: Additional parameters for T-SNE (see sklearn doc)
             :return: Transformed data
@@ -437,6 +432,7 @@ class AutoData(pd.DataFrame):
     def distance(self, data, method=None):
         """ Distance between two AutoData frames.
             There is a lot of methods to add (cf. utilities.py and metric.py)
+            Usage example: ad1.distance(ad2, method='privacy')
         """
         return metric.nn_discrepancy(self, data)
 
