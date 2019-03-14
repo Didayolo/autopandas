@@ -15,14 +15,13 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 import pandas as pd
 
 # Import project files
-sys.path.append('utils')
-import imputation
-import encoding
-import normalization
-import reduction
-import visualization
-import benchmark
-import metric
+import utils.imputation
+import utils.encoding
+import utils.normalization
+import utils.reduction
+import utils.visualization
+import utils.benchmark
+import utils.metric
 
 
 def read_csv(*args, **kwargs):

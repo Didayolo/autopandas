@@ -8,7 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_extraction import FeatureHasher
 from sklearn.model_selection import train_test_split
 
-from utilities import normalize
+from .utilities import normalize
 
 import bisect
 import copy

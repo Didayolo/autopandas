@@ -9,7 +9,7 @@ import seaborn as sns
 import numpy as np
 import pandas as pd
 from IPython.display import display, Markdown
-from metric import *
+from .metric import *
 from copy import deepcopy # for preprocessing
 
 # Hierarchical clustering
