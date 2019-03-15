@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-def plot(data, key=None, ad=None, max_features=12, save=None, **kwargs):
+def plot(data, key=None, ad=None, max_features=12, save=None, c=None, **kwargs):
     """ Show feature pairplots.
         TODO be able to pass column name ?
         Automatic selection ?
@@ -24,6 +24,12 @@ def plot(data, key=None, ad=None, max_features=12, save=None, **kwargs):
         if 'y' in data.indexes:
             print('TODO: class coloration')
             # hue=y
+
+        if feat_num == 2 and c is not None:
+            # TEST
+            # TODO
+            plt.scatter(data[0], data[1], c=c, alpha=.4, s=3**2, cmap='viridis')
+            plt.show()
 
         if ad is None:
             sns.pairplot(data, **kwargs)
