@@ -9,6 +9,7 @@ from scipy.stats import ks_2samp
 from sklearn.utils import resample, shuffle
 from sklearn.neighbors import NearestNeighbors
 import itertools
+from .nn_adversarial_accuracy import NearestNeighborMetrics
 
 def distance(x, y, axis=None, norm='manhattan'):
     """
@@ -40,6 +41,13 @@ def distance(x, y, axis=None, norm='manhattan'):
     else:
         raise ValueError('Argument norm is invalid.')
 
+def adversarial_accuracy(train, test, synthetics):
+    """ Compute nearest neighbors adversarial accuracy metric
+    """
+    nnm = NearestNeighborMetrics(train, test, synthetics)
+    nnm.compute_nn()
+    adversarial = nnm.compute_adversarial_accuracy()
+    return adversarial
 
 def distance_correlation(X, Y):
     """
@@ -74,7 +82,7 @@ def distance_correlation(X, Y):
     return dcor
 
 def relief_divergence(X1, X2):
-    ''' Divergence based on ( dist_to_nearest_miss - dist_to_nearest_hit )'''
+    """ Divergence based on ( dist_to_nearest_miss - dist_to_nearest_hit )"""
     p1, n = X1.shape
     p2, nn = X2.shape
     assert(n==nn)
@@ -92,8 +100,8 @@ def relief_divergence(X1, X2):
     return max(0, L)
 
 def acc_stat (solution, prediction):
-    ''' Return accuracy statistics TN, FP, TP, FN
-     Assumes that solution and prediction are binary 0/1 vectors.'''
+    """ Return accuracy statistics TN, FP, TP, FN
+     Assumes that solution and prediction are binary 0/1 vectors."""
      # This uses floats so the results are floats
     TN = sum(np.multiply((1-solution), (1-prediction)))
     FN = sum(np.multiply(solution, (1-prediction)))
@@ -106,7 +114,7 @@ def acc_stat (solution, prediction):
     return (TN, FP, TP, FN)
 
 def bac_metric (solution, prediction):
-    ''' Compute the balanced accuracy for binary classification. '''
+    """ Compute the balanced accuracy for binary classification. """
     [tn,fp,tp,fn] = acc_stat(solution, prediction)
     # Bounding to avoid division by 0
     eps = 1e-15
@@ -120,9 +128,9 @@ def bac_metric (solution, prediction):
     return bac
 
 def nn_discrepancy(X1, X2):
-    '''Use 1 nearest neighbor method to determine discrepancy X1 and X2.
+    """Use 1 nearest neighbor method to determine discrepancy X1 and X2.
     If X1 and X2 are very different, it is easy to classify them
-    thus bac > 0.5. Otherwise, if they are similar, bac ~ 0.5.'''
+    thus bac > 0.5. Otherwise, if they are similar, bac ~ 0.5."""
     n1 = X1.shape[0]
     n2 = X2.shape[0]
     X = np.concatenate((X1, X2))
@@ -134,7 +142,7 @@ def nn_discrepancy(X1, X2):
     return max(0, 2*bac_metric(Y, Ypred)-1)
 
 def ks_test(X1, X2):
-    ''' Paired Kolmogorov-Smirnov test for all matched pairs of variables in matrices X1 and X2.'''
+    """ Paired Kolmogorov-Smirnov test for all matched pairs of variables in matrices X1 and X2."""
     n =X1.shape[1]
     ks=np.zeros(n)
     pval=np.zeros(n)
@@ -143,7 +151,7 @@ def ks_test(X1, X2):
     return (ks, pval)
 
 def maximum_mean_discrepancy(A, B):
-        '''Compute the mean_discrepancy statistic between x and y'''
+        """Compute the mean_discrepancy statistic between x and y"""
         # TODO...
         X = np.concatenate((A, B))
         #X = th.cat([x, y], 0)
@@ -165,7 +173,7 @@ def maximum_mean_discrepancy(A, B):
         return L
 
 def cov_discrepancy(A, B):
-    '''Root mean square difference in covariance matrices'''
+    """Root mean square difference in covariance matrices"""
     CA = np.cov(A, rowvar=False);
     CB = np.cov(B, rowvar=False);
     n = CA.shape[0]
@@ -173,7 +181,7 @@ def cov_discrepancy(A, B):
     return L
 
 def corr_discrepancy(A, B):
-    '''Root mean square difference in correlation matrices'''
+    """Root mean square difference in correlation matrices"""
     CA = np.corrcoef(A, rowvar=False);
     CB = np.corrcoef(B, rowvar=False);
     n = CA.shape[0]

@@ -57,6 +57,13 @@ def read_automl(input_dir, basename):
     data.indexes['train'] = [0]
     """
 
+def from_train_test(train, test):
+    """ Create an AutoDataFrame from a train and a test DataFrame
+    """
+    ad = AutoData.append(train, test)
+    ad.set_index('train', range(0, len(train)))
+    ad.set_index('test', range(len(train), len(ad)))
+    return ad
 
 def plot(ad1, ad2, **kwargs):
     """ Alias for double plot.
@@ -68,7 +75,6 @@ class AutoData(pd.DataFrame):
     """ AutoData is a data structure extending Pandas Dataframe.
         The goal is to quickly get to grips with a dataset.
     """
-
     _metadata = ['indexes']
 
     ## 1. #################### READ/WRITE DATA ######################
@@ -77,13 +83,13 @@ class AutoData(pd.DataFrame):
     # Read AutoML, TFRecords
     # Init/save info, etc. (AutoML info)
 
-    def __init__(self, *args, indexes=None, **kwargs): # indexes = None
+    def __init__(self, *args, indexes=None, **kwargs):  # indexes = None
 
         pd.DataFrame.__init__(self, *args, **kwargs)
         # self.info = {} # maybe for later
 
         # indexes ('X', 'y', 'train', 'categorical', 'y_test', etc.)
-        self.indexes = {'header':range(5)} if indexes is None else indexes
+        self.indexes = {'header': range(5)} if indexes is None else indexes
 
         # find categorical and numerical variables
         if 'numerical' not in self.indexes.keys():
@@ -93,27 +99,22 @@ class AutoData(pd.DataFrame):
         if 'train' not in self.indexes.keys():
             self.train_test_split()
 
-
     @property
     def _constructor(self):
         return AutoData
 
-
     def copy(self):
-        """ Redefining copy to keep indexes from one to another.
+        """ Redefining copy to keep indexes from one copy to another.
         """
         data = pd.DataFrame.copy(self)
         data.indexes = self.indexes.copy()
         return data
 
-
     def to_automl(self):
         pass
 
-
     def set_index(self, key, value):
         self.indexes[key] = value
-
 
     def get_index(self, key=None):
         """ Return rows, columns
@@ -124,10 +125,10 @@ class AutoData(pd.DataFrame):
 
         elif key in ['train', 'valid', 'test', 'header']:
             rows = self.indexes[key]
-            columns = list(self) # all features
+            columns = list(self)  # all features
 
         elif key in ['X', 'y', 'categorical', 'numerical']:
-            rows = self.index # all rows
+            rows = self.index  # all rows
             columns = self.indexes[key]
 
         elif '_' in key:
@@ -140,7 +141,6 @@ class AutoData(pd.DataFrame):
 
         return rows, columns
 
-
     def flush_index(self, key=None):
         """ Delete useless indexes for a specific set.
             For example:
@@ -151,7 +151,6 @@ class AutoData(pd.DataFrame):
         """
         pass
 
-
     def get_data(self, key=None):
         """ Get data.
             :param key: wanted subset of data ('train', 'categorical_header', 'y', etc.)
@@ -161,19 +160,18 @@ class AutoData(pd.DataFrame):
         #data.flush_index(key)
         return data
 
-
     def get_types(self):
         """ Compute variables types: Numeric or Categorical.
             This information is then stored as indexes with key 'numerical' and 'categorical'.
         """
         N = self.shape[0]
-        prop = int(N / 25) # Arbitrary proportion of different values where a numerical variable is considered categorical
+        prop = int(N / 25)  # Arbitrary proportion of different values where a numerical variable is considered categorical
 
         categorical_index = []
         numerical_index = []
 
         for column in list(self):
-            p = len(self[column].unique()) # number of unique values in column
+            p = len(self[column].unique())  # number of unique values in column
 
             if (p <= prop) or any(isinstance(i, str) for i in self[column]):
                 categorical_index.append(column)
@@ -182,7 +180,6 @@ class AutoData(pd.DataFrame):
 
         self.indexes['categorical'] = categorical_index
         self.indexes['numerical'] = numerical_index
-
 
     def get_task(self):
         """ TODO: multiclass?
@@ -197,8 +194,6 @@ class AutoData(pd.DataFrame):
 
         else:
             raise Exception('No class is defined. Please use set_class method to define one.')
-
-
     # memo
     # to concat df by columns: join
     # to concat df by rows: append
@@ -209,7 +204,6 @@ class AutoData(pd.DataFrame):
         """
         pass
 
-
     ## 2. ###################### PROCESSINGS #########################
     # Imputation, encoding, normalization
 
@@ -218,7 +212,11 @@ class AutoData(pd.DataFrame):
     # train/test/valid split shuffle
     # Dimensionality reduction (method) (only on X)
 
-    def train_test_split(self, test_size=0.3, shuffle=True, valid=False, valid_size=0.1):
+    def train_test_split(self,
+                         test_size=0.3,
+                         shuffle=True,
+                         valid=False,
+                         valid_size=0.1):
         """ Procedure
             TODO: shuffle
         """
@@ -227,18 +225,17 @@ class AutoData(pd.DataFrame):
 
         train_index = range(split)
         valid_index = []
-        test_index = range(split, N-1)
+        test_index = range(split, N - 1)
 
         self.set_index('train', train_index)
         self.set_index('valid', valid_index)
         self.set_index('test', test_index)
 
-
     def set_class(self, y=None):
         """ Procedure
             Define the column(s) representing a class (y).
         """
-        X = list(self) # column names
+        X = list(self)  # column names
 
         # no class
         if y is None:
@@ -256,7 +253,6 @@ class AutoData(pd.DataFrame):
                 X.remove(name)
 
         self.set_index('X', X)
-
 
     def imputation(self, method='most', key=None):
         """ Impute missing values.
@@ -285,7 +281,6 @@ class AutoData(pd.DataFrame):
 
         return data
 
-
     def normalization(self, method='standard', key=None):
         """ Normalize data.
             :param method: 'standard', 'min-max', None
@@ -311,7 +306,6 @@ class AutoData(pd.DataFrame):
 
         return data
 
-
     def encoding(self, method='label', key=None):
         """ Encode categorical variables.
             :param method: 'none', 'label', 'one-hot', 'rare-one-hot', 'target', 'likelihood', 'count', 'probability'
@@ -327,7 +321,6 @@ class AutoData(pd.DataFrame):
 
         return data
 
-
     def pca(self, key=None, verbose=False, **kwargs):
         """ Compute PCA.
             :param verbose: Display additional information during run
@@ -338,12 +331,13 @@ class AutoData(pd.DataFrame):
         data = self.copy()
         rows, columns = data.get_index(key)
         # compute PCA and copy indexes
-        data = AutoData(reduction.pca(data, key=key, verbose=verbose, **kwargs), indexes=data.indexes)
+        data = AutoData(
+            reduction.pca(data, key=key, verbose=verbose, **kwargs),
+            indexes=data.indexes)
         # variable are now only numerical
         data.indexes['categorical'] = []
         data.indexes['numerical'] = list(data)
         return data
-
 
     def tsne(self, key=None, verbose=False, **kwargs):
         """ Compute T-SNE.
@@ -352,8 +346,8 @@ class AutoData(pd.DataFrame):
             :return: Transformed data
             :rtype: AutoData
         """
-        return AutoData(reduction.tsne(self, key=key, verbose=verbose, **kwargs))
-
+        return AutoData(
+            reduction.tsne(self, key=key, verbose=verbose, **kwargs))
 
     def lda(self, key=None, verbose=False, **kwargs):
         """
@@ -363,55 +357,50 @@ class AutoData(pd.DataFrame):
             :return: Transformed data
             :rtype: AutoData
         """
-        return AutoData(reduction.lda(self, key=key, verbose=verbose, **kwargs))
-
+        return AutoData(
+            reduction.lda(self, key=key, verbose=verbose, **kwargs))
 
     def reduction(self, method='pca', key=None, verbose=False, **kwargs):
         """ Dimensionality reduction
             method: pca, lda, tsne
         """
         data = self.get_data(key)
-
         if method == 'pca':
             data = data.pca(key=key, verbose=verbose, **kwargs)
-
         elif method == 'tsne':
             data = data.tsne(key=key, verbose=verbose, **kwargs)
-
         elif method == 'lda':
             data = data.lda(key=key, verbose=verbose, **kwargs)
-
         else:
             raise Exception('Unknown dimensionality reduction method: {}'.format(method))
-
         return data
-
 
     ## 3. ###################### VISUALIZATION #######################
 
     # TODO
     # Class coloration on plots!
 
-
     def plot(self, key=None, ad=None, max_features=12, save=None, **kwargs):
         """ Show feature pairplots.
             TODO be able to pass column name ?
             Automatic selection ?
         """
-        visualization.plot(self, key=key, ad=ad, max_features=max_features, save=save, **kwargs)
-
+        visualization.plot(
+            self,
+            key=key,
+            ad=ad,
+            max_features=max_features,
+            save=save,
+            **kwargs)
 
     def plot_pca(self, key):
         self.pca(key, n_components=2).plot()
 
-
     def heatmap(self, **kwargs):
         visualization.heatmap(self, **kwargs)
 
-
     def correlation(self, **kwargs):
         visualization.correlation(self, **kwargs)
-
 
     ## 4. ######################## BENCHMARK ##########################
 
@@ -424,8 +413,8 @@ class AutoData(pd.DataFrame):
     def score(self, model=None, metric=None, method='baseline', fit=True):
         """ Benchmark ...
         """
-        return benchmark.score(self, model=model, metric=metric, method=method, fit=fit)
-
+        return benchmark.score(
+            self, model=model, metric=metric, method=method, fit=fit)
 
     # Distribution comparator
     def distance(self, data, method=None):
@@ -433,8 +422,12 @@ class AutoData(pd.DataFrame):
             There is a lot of methods to add (cf. utilities.py and metric.py)
             Usage example: ad1.distance(ad2, method='privacy')
         """
-        return metric.nn_discrepancy(self, data)
-
+        if method is None:
+            return metric.nn_discrepancy(self, data)
+        elif method == 'adversarial_accuracy':
+            return metric.adversarial_accuracy(self.get_data('train'), self.get_data('test'), data)
+        else:
+            raise Exception('Unknown distance metric: {}'.format(method))
 
     #################### ALIAS #######################
     # How to automate this ?
