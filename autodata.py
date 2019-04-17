@@ -184,7 +184,7 @@ class AutoData(pd.DataFrame):
     def get_task(self):
         """ TODO: multiclass?
         """
-        if 'y' in self.indexes.keys():
+        if self.has_class():
             for c in self.indexes['y']:
                 if c in self.indexes['numerical']:
                     return 'regression'
@@ -194,6 +194,7 @@ class AutoData(pd.DataFrame):
 
         else:
             raise Exception('No class is defined. Please use set_class method to define one.')
+
     # memo
     # to concat df by columns: join
     # to concat df by rows: append
@@ -237,22 +238,34 @@ class AutoData(pd.DataFrame):
         """
         X = list(self)  # column names
 
-        # no class
+        # no class (re-initialize)
         if y is None:
             self.set_index('y', [])
 
         # y is 1 column
         elif isinstance(y, str) or isinstance(y, int):
             self.set_index('y', [y])
-            X.remove(y)
+            try:
+                X.remove(y)
+            except:
+                raise Exception('Column "{}" does not exist.'.format(y))
 
         # y is array-like
         else:
             self.set_index('y', y)
             for name in y:
-                X.remove(name)
-
+                try:
+                    X.remove(name)
+                except:
+                    raise Exception('Column "{}" does not exist.'.format(name))
         self.set_index('X', X)
+
+    def has_class(self):
+        """ Return True if 'y' is defined and corresponds to one column (or more)
+        """
+        if ('y' in self.indexes.keys()) and (self.indexes['y'] != []):
+                return True
+        return False
 
     def imputation(self, method='most', key=None):
         """ Impute missing values.
