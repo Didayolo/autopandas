@@ -415,6 +415,9 @@ class AutoData(pd.DataFrame):
     def correlation(self, **kwargs):
         visualization.correlation(self, **kwargs)
 
+    def compare_marginals(self, ad, **kwargs):
+        visualization.compare_marginals(self, ad, **kwargs)
+
     ## 4. ######################## BENCHMARK ##########################
 
     # TODO

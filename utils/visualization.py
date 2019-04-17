@@ -92,8 +92,8 @@ def compare_marginals(data1, data2, key=None, method='all', target=None, save=No
 
     if method in ['corr', 'all']:
         if has_class and (target is None):
-            y1 = X1.get_data('y')
-            y2 = X2.get_data('y')
+            y1 = X1[X1.indexes['y'][0]] #.get_data('y') # TODO
+            y2 = X2[X2.indexes['y'][0]] #.get_data('y') # TODO
         else:
             y1 = X1[target]
             y2 = X2[target]
