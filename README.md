@@ -1,4 +1,4 @@
-# AutoData
+# AutoPandas
 
 ### Process, visualize and use data easily.
 
