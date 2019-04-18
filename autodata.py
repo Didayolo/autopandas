@@ -23,10 +23,19 @@ import utils.visualization as visualization
 import utils.benchmark as benchmark
 import utils.metric as metric
 
+# generators
+import generators.generators as generators
+
 
 def read_csv(*args, **kwargs):
-    # Infer CSV separator: sep=None, engine='python'
-    return AutoData(pd.read_csv(*args, **kwargs))
+    """ Read data from CSV file.
+        Default behaviour is to infer separator.
+    """
+    if ('sep' in kwargs) or ('engine' in kwargs):
+        data = pd.read_csv(*args, **kwargs)
+    else: # Infer CSV separator
+        data = pd.read_csv(*args, **kwargs, sep=None, engine='python')
+    return AutoData(data)
 
 
 def read_automl(input_dir, basename):
