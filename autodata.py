@@ -37,7 +37,6 @@ def read_csv(*args, **kwargs):
         data = pd.read_csv(*args, **kwargs, sep=None, engine='python')
     return AutoData(data)
 
-
 def read_automl(input_dir, basename):
     """ Read files in AutoML format.
         TODO
@@ -118,6 +117,15 @@ class AutoData(pd.DataFrame):
         data = pd.DataFrame.copy(self)
         data.indexes = self.indexes.copy()
         return data
+
+    def to_csv(self, *args, **kwargs):
+        """ Write data into a CSV file.
+            Index is not written by default.
+        """
+        if ('index' in kwargs):
+            super(AutoData, self).to_csv(*args, **kwargs)
+        else: # Do not write index column
+            super(AutoData, self).to_csv(*args, **kwargs, index=False)
 
     def to_automl(self):
         pass
