@@ -15,16 +15,16 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 import pandas as pd
 
 # Import project files
-import utils.imputation as imputation
-import utils.encoding as encoding
-import utils.normalization as normalization
-import utils.reduction as reduction
-import utils.visualization as visualization
-import utils.benchmark as benchmark
-import utils.metric as metric
+from .utils import imputation as imputation
+from .utils import encoding as encoding
+from .utils import normalization as normalization
+from .utils import reduction as reduction
+from .utils import visualization as visualization
+from .utils import benchmark as benchmark
+from .utils import metric as metric
 
 # generators
-import generators.generators as generators
+from .generators import generators as generators
 
 
 def read_csv(*args, **kwargs):

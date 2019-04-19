@@ -1,7 +1,4 @@
 .ipynb_checkpoints
 __pycache__
-dist/
-build/
 *iris
-autopandas.egg-info/
 *.zip
