@@ -77,6 +77,11 @@ def plot(ad1, ad2, **kwargs):
     """
     ad1.plot(ad=ad2, **kwargs)
 
+def compare_marginals(ad1, ad2, **kwargs):
+    """ Alias for marginals comparison plot.
+    """
+    ad1.compare_marginals(ad=ad2, **kwargs)
+
 
 class AutoData(pd.DataFrame):
     """ AutoData is a data structure extending Pandas Dataframe.

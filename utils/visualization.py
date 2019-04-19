@@ -20,9 +20,9 @@ def plot(data, key=None, ad=None, max_features=12, save=None, c=None, **kwargs):
         if key is not None:
             print('{} set plot'.format(key))
 
-        if 'y' in data.indexes:
-            print('TODO: class coloration')
+        # if data.has_class
             # hue=y
+            # TODO class coloration
 
         if feat_num == 2 and c is not None:
             # TEST
