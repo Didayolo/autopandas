@@ -15,7 +15,7 @@ def score(data, model=None, metric=None, method='baseline', fit=True):
             clf = RandomForestClassifier()
             reg = RandomForestRegressor()
 
-        elif method in ['autosklearn', 'automl', 'automatic']:
+        elif method in ['auto', 'autosklearn', 'automl', 'automatic']:
             clf = AutoSklearnClassifier()
             reg = AutoSklearnRegressor() # multi-ouput ??
 
