@@ -26,7 +26,6 @@ from .utils import metric as metric
 # generators
 from .generators import generators as generators
 
-
 def read_csv(*args, **kwargs):
     """ Read data from CSV file.
         Default behaviour is to infer separator.

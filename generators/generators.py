@@ -1,4 +1,5 @@
+# Generators module
+
 # Import all generators
 from .copycat import Copycat
-
-# Need an abstract class Generator?
+from .vae import VAE
