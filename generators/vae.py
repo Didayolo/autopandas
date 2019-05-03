@@ -36,13 +36,33 @@ class VAE():
     """ Variational Autoencoder
     """
     def __init__(self, original_dim, intermediate_dim=256, latent_dim=2, epsilon_std=1.0):
-        decoder = Sequential([
-            Dense(intermediate_dim, input_dim=latent_dim, activation='relu'),
-            Dense(original_dim, activation='sigmoid')
-        ])
+        """ :param original_dim: Input/output size.
+            :param intermediate_dim: Dimension of intermediate layers (encoder and decoder).
+                                     It can be:
+                                     - an integer (one intermediate layer)
+                                     - a list of integers (several intermediate layers)
+            :param latent_dim: Dimension of latent space layer.
+            :param espilon_std: Standard deviation of gaussian distribution prior.
+        """
+        is_multilayer = not isinstance(intermediate_dim, int) # True if there are several intermediate layers
+
+        decoder = Sequential()
+        if is_multilayer:
+            # in the decoder we arrange layers in the opposite order compared to the encoder
+            decoder.add(Dense(intermediate_dim[-1], input_dim=latent_dim, activation='relu'))
+            for layer_dim in reversed(intermediate_dim[:-1]):
+                decoder.add(Dense(layer_dim, activation='relu'))
+        else:
+            decoder.add(Dense(intermediate_dim, input_dim=latent_dim, activation='relu'))
+        decoder.add(Dense(original_dim, activation='sigmoid'))
 
         x = Input(shape=(original_dim,))
-        h = Dense(intermediate_dim, activation='relu')(x)
+        if is_multilayer:
+            h = Dense(intermediate_dim[0], activation='relu')(x)
+            for layer_dim in intermediate_dim[1:]:
+                h = Dense(layer_dim, activation='relu')(h)
+        else:
+            h = Dense(intermediate_dim, activation='relu')(x)
 
         z_mu = Dense(latent_dim)(h)
         z_log_var = Dense(latent_dim)(h)
