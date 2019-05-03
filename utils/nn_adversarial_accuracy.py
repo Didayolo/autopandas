@@ -25,7 +25,7 @@ class NearestNeighborMetrics():
     def nearest_neighbors(self, t, s):
         """Find nearest neighbors d_ts and d_ss"""
         # fit to S
-        nn_s = NearestNeighbors(1).fit(self.data[s])
+        nn_s = NearestNeighbors(1).fit(self.data[s]) #.reshape(-1, 1)
         if t == s:
             # find distances from s to s (shortcut because it is itself)
             d = nn_s.kneighbors()[0]

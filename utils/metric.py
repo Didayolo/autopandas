@@ -8,10 +8,12 @@ from scipy.spatial.distance import pdist, cdist, squareform
 from scipy.stats import ks_2samp
 from sklearn.utils import resample, shuffle
 from sklearn.neighbors import NearestNeighbors
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report
 import itertools
 from .nn_adversarial_accuracy import NearestNeighborMetrics
 
-def distance(x, y, axis=None, norm='manhattan'):
+def distance(x, y, axis=None, norm='euclidean'):
     """
         Compute the distance between x and y.
 
@@ -22,15 +24,15 @@ def distance(x, y, axis=None, norm='manhattan'):
         :return: Distance value
         :rtype: float
     """
-    z = x - y
-
     # if x and y are single values
     if not isinstance(x, (list, np.ndarray)):
         z = [x - y]
+    else:
+        z = x - y
 
-    if norm == 'manhattan' or distance == 'l1':
+    if norm == 'manhattan' or norm == 'l1':
         return np.linalg.norm(z, ord=1, axis=axis)
-    elif norm == 'euclidean' or distance == 'l2':
+    elif norm == 'euclidean' or norm == 'l2':
         return np.linalg.norm(z, ord=2, axis=axis)
     elif norm == 'minimum':
         return np.linalg.norm(z, ord=-np.inf, axis=axis)
@@ -48,6 +50,14 @@ def adversarial_accuracy(train, test, synthetics):
     nnm.compute_nn()
     adversarial = nnm.compute_adversarial_accuracy()
     return adversarial
+
+def tmp_aa(data1, data2):
+    """ New implementation of AA metric
+    """
+    # compute all distances
+    # ...
+    # 2 times quicker than naive 1NN leave-one-out
+    pass
 
 def distance_correlation(X, Y):
     """
@@ -187,3 +197,54 @@ def corr_discrepancy(A, B):
     n = CA.shape[0]
     L = np.sqrt( np.linalg.norm(CA-CB) / n**2 )
     return L
+
+def discriminant(data1, data2, model=LogisticRegression(), metric=None, name1='Dataset 1', name2='Dataset 2', same_size=False):
+    """ Return the scores of a classifier trained to differentiate data1 and data2.
+
+        :param model: The classifier. It has to have fit(X,y) and score(X,y) methods.
+        :param metric: The scoring metric
+        :param same_size: If True, normalize datasets to same size before computation.
+        :return: Classification report (precision, recall, f1-score).
+        :rtype: str
+    """
+    # TODO /!\
+    # check if train/test split already exists or do it
+    if not data1.has_split() and data2.has_split():
+        data1.train_test_split()
+        data2.train_test_split()
+
+    ds1_train = data1.get_data('train')
+    ds1_test = data1.get_data('test')
+    ds2_train = data2.get_data('train')
+    ds2_test = data2.get_data('test')
+
+    if same_size:
+        # Same number of example in both dataset to compute
+        if ds1_train.shape[0] < ds2_train.shape[0]:
+            ds2_train = ds2_train.sample(n=ds1_train.shape[0])
+        if ds1_train.shape[0] > ds2_train.shape[0]:
+            ds1_train = ds1_train.sample(n=ds1_train.shape[0])
+
+    # Train set
+    X1_train, X2_train = list(ds1_train.values), list(ds2_train.values)
+    X_train = X1_train + X2_train
+    y_train = [0] * len(X1_train) + [1] * len(X2_train)
+
+    # Shuffle
+    combined = list(zip(X_train, y_train))
+    random.shuffle(combined)
+    X_train[:], y_train[:] = zip(*combined)
+
+    # Test set
+    X1_test, X2_test = list(ds1_test.values), list(ds2_test.values)
+    X_test = X1_test + X2_test
+    y_test = [0] * len(X1_test) + [1] * len(X2_test)
+
+    # Training
+    model.fit(X_train, y_train)
+
+    # Score
+    #clf.score(X_test, y_test)
+    target_names = [label1, label2]
+    # metric here
+    return classification_report(model.predict(X_test), y_test, target_names=target_names)

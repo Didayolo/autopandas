@@ -6,7 +6,8 @@ from autosklearn.classification import AutoSklearnClassifier
 from autosklearn.regression import AutoSklearnRegressor
 
 def score(data, model=None, metric=None, method='baseline', fit=True):
-    """ Benchmark ...
+    """ Benchmark
+        a.k.a. Utility
     """
     if model is None:
 

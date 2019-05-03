@@ -284,9 +284,14 @@ class AutoData(pd.DataFrame):
     def has_class(self):
         """ Return True if 'y' is defined and corresponds to one column (or more)
         """
-        if ('y' in self.indexes.keys()) and (self.indexes['y'] != []):
-                return True
-        return False
+        return ('y' in self.indexes.keys()) and (self.indexes['y'] != [])
+
+    def has_split(self):
+        """ Return True if 'train' and 'test' are defined and corresponds to one column (or more)
+        """
+        train = ('train' in self.indexes.keys()) and (self.indexes['train'] != [])
+        test = ('test' in self.indexes.keys()) and (self.indexes['test'] != [])
+        return (train and test)
 
     def imputation(self, method='most', key=None):
         """ Impute missing values.
