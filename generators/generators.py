@@ -3,6 +3,7 @@
 # Import all generators
 from .copycat import Copycat
 from .vae import VAE
+from .anm import ANM
 
-# ANM
-# GAN, WGAN
+# TODO
+# GAN, WGAN, Copula

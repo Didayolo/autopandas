@@ -41,7 +41,7 @@ def distance(x, y, axis=None, norm='euclidean'):
     elif norm == 'l0':
         return np.linalg.norm(z, ord=0, axis=axis)
     else:
-        raise ValueError('Argument norm is invalid.')
+        raise ValueError('Unknwon norm: {}.'.format(norm))
 
 def adversarial_accuracy(train, test, synthetics):
     """ Compute nearest neighbors adversarial accuracy metric

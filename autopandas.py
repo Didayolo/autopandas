@@ -22,7 +22,7 @@ from .utils import reduction as reduction
 from .utils import visualization as visualization
 from .utils import benchmark as benchmark
 from .utils import metric as metric
-
+from .utils import nnaa as nnaa
 # generators
 from .generators import generators as generators
 
@@ -82,6 +82,10 @@ def compare_marginals(ad1, ad2, **kwargs):
     """
     ad1.compare_marginals(ad=ad2, **kwargs)
 
+def distance(ad1, ad2, method=None): #, **kwargs): TODO
+    """ Alias for distance between AutoData.
+    """
+    return ad1.distance(ad2, method=method) #, **kwargs)
 
 class AutoData(pd.DataFrame):
     """ AutoData is a data structure extending Pandas Dataframe.
@@ -187,18 +191,14 @@ class AutoData(pd.DataFrame):
         """
         N = self.shape[0]
         prop = int(N / 25)  # Arbitrary proportion of different values where a numerical variable is considered categorical
-
         categorical_index = []
         numerical_index = []
-
         for column in list(self):
             p = len(self[column].unique())  # number of unique values in column
-
             if (p <= prop) or any(isinstance(i, str) for i in self[column]):
                 categorical_index.append(column)
             else:
                 numerical_index.append(column)
-
         self.indexes['categorical'] = categorical_index
         self.indexes['numerical'] = numerical_index
 
@@ -209,10 +209,8 @@ class AutoData(pd.DataFrame):
             for c in self.indexes['y']:
                 if c in self.indexes['numerical']:
                     return 'regression'
-
             else:
                 return 'classification'
-
         else:
             raise Exception('No class is defined. Please use set_class method to define one.')
 

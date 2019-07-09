@@ -1,3 +1,4 @@
+# Example generator. Copycat simply copy training data.
 
 class Copycat():
     """ Baseline generator: simply copy training data
@@ -10,6 +11,6 @@ class Copycat():
 
     def sample(self, n=1, replace=False):
         if self.data is None:
-            raise Exception('You firstly need to fit the Copycat before sampling.')
+            raise Exception('You firstly need to train the Copycat before sampling. Please use fit method.')
         else:
             return self.data.sample(n, replace=replace)
