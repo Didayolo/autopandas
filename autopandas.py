@@ -147,23 +147,18 @@ class AutoData(pd.DataFrame):
         if key is None:
             rows = self.index
             columns = list(self)
-
         elif key in ['train', 'valid', 'test', 'header']:
             rows = self.indexes[key]
             columns = list(self)  # all features
-
         elif key in ['X', 'y', 'categorical', 'numerical']:
             rows = self.index  # all rows
             columns = self.indexes[key]
-
         elif '_' in key:
             v, h = key.split('_')
             rows = self.indexes[h]
             columns = self.indexes[v]
-
         else:
             raise Exception('Unknown key.')
-
         return rows, columns
 
     def flush_index(self, key=None):
@@ -223,6 +218,34 @@ class AutoData(pd.DataFrame):
             Useless?
         """
         pass
+
+    ##################################################################
+    # DESCRIPTIORS
+    def ratio(self, key=None):
+        """ Dataset ratio: dimension / number of examples
+        """
+        return len(self.columns) / len(self.get_data(key))
+
+    def symbolic_ratio(self):
+        """ Ratio of symbolic attributes
+        """
+        return len(self.get_data('numerical').columns) / len(self.columns)
+
+    def class_deviation(self):
+        if self.has_class():
+            return self.get_data('y').std().mean()
+        else:
+            raise Exception('No class is defined. Please use set_class method to define one.')
+
+    def missing_ratio(self):
+        """ Ratio of missing values
+        """
+        return (self.isnull().sum() / len(self)).mean()
+
+    # Memo skewness
+    #self.skew().min() # max # mean
+    ##################################################################
+
 
     ## 2. ###################### PROCESSINGS #########################
     # Imputation, encoding, normalization
@@ -457,7 +480,7 @@ class AutoData(pd.DataFrame):
             self, model=model, metric=metric, method=method, fit=fit)
 
     # Distribution comparator
-    def distance(self, data, method=None):
+    def distance(self, data, method=None, **kwargs):
         """ Distance between two AutoData frames.
             There is a lot of methods to add (cf. utilities.py and metric.py)
             Usage example: ad1.distance(ad2, method='privacy')
@@ -466,6 +489,8 @@ class AutoData(pd.DataFrame):
             return metric.nn_discrepancy(self, data)
         elif method == 'adversarial_accuracy':
             return metric.adversarial_accuracy(self.get_data('train'), self.get_data('test'), data)
+        elif method == 'discriminant':
+            return metric.discriminant(self, data, **kwargs)
         else:
             raise Exception('Unknown distance metric: {}'.format(method))
 

@@ -606,7 +606,6 @@ def compute_mda(md, norm='manhattan', precision=0.2, threshold=0.2, area='simpso
 def mmd(x, y):
     """ Compute the Maximum Mean Discrepancy Metric to compare empirical distributions.
         Ref: Gretton, A., Borgwardt, K. M., Rasch, M. J., Schölkopf, B., & Smola, A. (2012). A kernel two-sample test. Journal of Machine Learning Research, 13(Mar), 723-773.
-
         :param x: Distribution
         :param y: Distribution
     """
@@ -617,7 +616,6 @@ def mmd(x, y):
                     (th.ones([input_size, 1])).div(-input_size)], 0)
     S = s.mm(s.t())
     S = Variable(S, requires_grad=False)
-
     X = th.cat([x, y], 0)
     # dot product between all combinations of rows in 'X'
     XX = X @ X.t()
@@ -628,7 +626,6 @@ def mmd(x, y):
     # combination of the rows in 'X'
     # -0.5 * (i^Ti - 2*i^Tj + j^Tj)
     exponent = XX - 0.5 * (X2.expand_as(XX) + X2.t().expand_as(XX))
-
     lossMMD = th.sum(S * sum([(exponent * (1./bandwith)).exp() for bandwith in bandwiths]))
     return lossMMD.sqrt()
 

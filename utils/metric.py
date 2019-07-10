@@ -2,6 +2,7 @@
 
 import numpy as np
 import scipy as sp
+import random
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from scipy.spatial.distance import pdist, cdist, squareform
@@ -209,42 +210,38 @@ def discriminant(data1, data2, model=LogisticRegression(), metric=None, name1='D
     """
     # TODO /!\
     # check if train/test split already exists or do it
-    if not data1.has_split() and data2.has_split():
+    if not data1.has_split():
         data1.train_test_split()
+    if not data2.has_split():
         data2.train_test_split()
-
     ds1_train = data1.get_data('train')
     ds1_test = data1.get_data('test')
     ds2_train = data2.get_data('train')
     ds2_test = data2.get_data('test')
-
     if same_size:
         # Same number of example in both dataset to compute
         if ds1_train.shape[0] < ds2_train.shape[0]:
             ds2_train = ds2_train.sample(n=ds1_train.shape[0])
         if ds1_train.shape[0] > ds2_train.shape[0]:
             ds1_train = ds1_train.sample(n=ds1_train.shape[0])
-
     # Train set
     X1_train, X2_train = list(ds1_train.values), list(ds2_train.values)
     X_train = X1_train + X2_train
     y_train = [0] * len(X1_train) + [1] * len(X2_train)
-
     # Shuffle
     combined = list(zip(X_train, y_train))
     random.shuffle(combined)
     X_train[:], y_train[:] = zip(*combined)
-
     # Test set
     X1_test, X2_test = list(ds1_test.values), list(ds2_test.values)
     X_test = X1_test + X2_test
     y_test = [0] * len(X1_test) + [1] * len(X2_test)
-
     # Training
     model.fit(X_train, y_train)
-
     # Score
     #clf.score(X_test, y_test)
-    target_names = [label1, label2]
     # metric here
-    return classification_report(model.predict(X_test), y_test, target_names=target_names)
+    target_names = [name1, name2]
+    model_info = str(model)
+    report = classification_report(model.predict(X_test), y_test, target_names=target_names)
+    return model_info + '\n' + report + '\n'
