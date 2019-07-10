@@ -2,3 +2,4 @@
 __pycache__
 *iris
 *.zip
+docs/_build
