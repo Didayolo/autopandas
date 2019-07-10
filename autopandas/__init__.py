@@ -5,4 +5,3 @@
 """
 
 from .autopandas import *
-from .autopandas import __about__
