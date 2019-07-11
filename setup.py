@@ -1,12 +1,12 @@
 from setuptools import find_packages, setup
 import autopandas
 
-with open("autopandas/README.md", "r") as fh:
+with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
      name='autopandas',
-     version='0.1.8',
+     version='0.2.0',
      author="Adrien Pavao",
      author_email="adrien.pavao@gmail.com",
      description="Process, visualize and use data easily.",

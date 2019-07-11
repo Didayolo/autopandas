@@ -1,4 +1,4 @@
-# AutoData
+# AutoPandas
 # Based on pandas, numpy, sklearn, auto-sklearn, matplotlib and seaborn
 
 # TODO #####################################
