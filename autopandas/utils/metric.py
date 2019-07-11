@@ -12,7 +12,8 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 import itertools
-from .nn_adversarial_accuracy import NearestNeighborMetrics
+#from .nn_adversarial_accuracy import NearestNeighborMetrics
+from .nnaa import nnaa
 
 def distance(x, y, axis=None, norm='euclidean'):
     """
@@ -44,21 +45,21 @@ def distance(x, y, axis=None, norm='euclidean'):
     else:
         raise ValueError('Unknwon norm: {}.'.format(norm))
 
-def adversarial_accuracy(train, test, synthetics):
-    """ Compute nearest neighbors adversarial accuracy metric
-    """
-    nnm = NearestNeighborMetrics(train, test, synthetics)
-    nnm.compute_nn()
-    adversarial = nnm.compute_adversarial_accuracy()
-    return adversarial
+#def adversarial_accuracy(train, test, synthetics):
+#    """ Compute nearest neighbors adversarial accuracy metric
+#    """
+#    nnm = NearestNeighborMetrics(train, test, synthetics)
+#    nnm.compute_nn()
+#    adversarial = nnm.compute_adversarial_accuracy()
+#    return adversarial
 
-def tmp_aa(data1, data2):
-    """ New implementation of AA metric
-    """
-    # compute all distances
-    # ...
-    # 2 times quicker than naive 1NN leave-one-out
-    pass
+#def tmp_aa(data1, data2):
+#    """ New implementation of AA metric
+#    """
+#    # compute all distances
+#    # ...
+#    # 2 times quicker than naive 1NN leave-one-out
+#    pass
 
 def distance_correlation(X, Y):
     """
