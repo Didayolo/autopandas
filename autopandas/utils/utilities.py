@@ -60,10 +60,8 @@ def normalize(l, normalization='probability'):
     """
     if normalization=='probability':
         return [float(i)/sum(l) for i in l]
-
     elif normalization=='min-max':
         return [(float(i) - min(l)) / (max(l) - min(l)) for i in l]
-
     else: # mean std ?
         raise ValueError('Argument normalization is invalid.')
 

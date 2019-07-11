@@ -8,8 +8,6 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_extraction import FeatureHasher
 from sklearn.model_selection import train_test_split
 
-from .utilities import normalize
-
 import bisect
 import copy
 
@@ -216,13 +214,10 @@ def frequency(columns, probability=False):
         :return: Frequency/probability distribution.
         :rtype: list
     """ # TODO error if several columns have the same header
-
     # If there is only one column, just return frequencies
     if not isinstance(columns[0], (list, np.ndarray, pd.Series)):
         return columns.value_counts(normalize=probability).values
-
     frequencies = []
-
     # Compute frequencies for each column
     for column in columns:
         f = dict()
@@ -232,7 +227,6 @@ def frequency(columns, probability=False):
             else:
                 f[e] = 1
         frequencies.append(f)
-
     # Add keys from other columns in every dictionaries with a frequency of 0
     # We want the same format
     for i, f in enumerate(frequencies):
@@ -240,7 +234,6 @@ def frequency(columns, probability=False):
             for other_f in frequencies[:i]+frequencies[i+1:]:
                 if k not in other_f:
                     other_f[k] = 0
-
     # Convert to frequency/probability distribution
     res = []
     for f in frequencies:
@@ -251,9 +244,7 @@ def frequency(columns, probability=False):
         # Convert dict into a list of values
         res.append(l)
         # Every list will follow the same order because the dicts contain the same keys
-
     return res
-
 
 def cat2vec(data, size=6, window=8, verbose=True):
     """ TODO
@@ -287,5 +278,17 @@ def cat2vec(data, size=6, window=8, verbose=True):
 
     return pd.DataFrame(x_w2v_train)
 
-
 # Deep category embedding
+
+def normalize(l, normalization='probability'):
+    """ Return a normalized list
+        Input:
+          normalization: 'probability': between 0 and 1 with a sum equals to 1
+                         'min-max': min become 0 and max become 1
+    """
+    if normalization=='probability':
+        return [float(i)/sum(l) for i in l]
+    elif normalization=='min-max':
+        return [(float(i) - min(l)) / (max(l) - min(l)) for i in l]
+    else: # mean std ?
+        raise ValueError('Argument normalization is invalid.')
