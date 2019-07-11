@@ -25,12 +25,12 @@ import autopandas
 
 # -- Project information -----------------------------------------------------
 
-project = autopandas.__about__.__project__
+project = 'autopandas'
 copyright = '2019, Adrien Pavao'
-author = autopandas.__about__.__author__
+author = 'Adrien Pavao'
 
 # The short X.Y version
-version = autopandas.__about__.__version__
+version = '0.1.8'
 # The full version, including alpha/beta/rc tags
 release = version
 
