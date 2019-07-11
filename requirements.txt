@@ -8,3 +8,4 @@ auto-sklearn
 #scipy
 gensim
 keras
+tensorflow
