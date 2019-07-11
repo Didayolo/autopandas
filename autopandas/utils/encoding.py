@@ -2,15 +2,13 @@
 
 # Imports
 import numpy as np
-
+import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_extraction import FeatureHasher
 from sklearn.model_selection import train_test_split
-
 import bisect
 import copy
-
 # cat2vec
 from gensim.models.word2vec import Word2Vec
 from random import shuffle
@@ -37,7 +35,7 @@ def label(data, column):
     data[column] = data[column].astype('category').cat.codes
     return data
 
-def one_hot(x, column, rare=False, coeff=0.1):
+def one_hot(data, column, rare=False, coeff=0.1):
     """
         Performs one-hot encoding.
         Example:
@@ -45,7 +43,6 @@ def one_hot(x, column, rare=False, coeff=0.1):
             is encoded by
             Black: [1, 0, 0]
             White: [0, 1, 1]
-
         :param df: Data
         :param column: Column to encode
         :param rare: If True, rare categories are merged into one
@@ -56,16 +53,13 @@ def one_hot(x, column, rare=False, coeff=0.1):
     """
     # Rare values management
     if rare:
-        average = len(x[column]) / len(x[column].unique()) # train/test bias ?
+        average = len(data[column]) / len(data[column].unique()) # train/test bias ?
         threshold = np.ceil(average * coeff)
-        x.loc[x[column].value_counts()[x[column]].values < threshold, column] = "RARE_VALUE"
-
+        data.loc[data[column].value_counts()[data[column]].values < threshold, column] = "RARE_VALUE"
     # Usual one-hot encoding
-    x = pd.concat([x, pd.get_dummies(x[column], prefix=column)], axis=1)
-    x.drop([column], axis=1, inplace=True)
-
-    return x
-
+    data = pd.concat([data, pd.get_dummies(data[column], prefix=column)], axis=1)
+    data.drop([column], axis=1, inplace=True)
+    return data
 
 def likelihood(x, column, feat_type=None, mapping=None, return_param=False):
     """

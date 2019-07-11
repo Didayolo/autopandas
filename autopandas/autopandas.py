@@ -100,17 +100,13 @@ class AutoData(pd.DataFrame):
     # Init/save info, etc. (AutoML info)
 
     def __init__(self, *args, indexes=None, **kwargs):  # indexes = None
-
         pd.DataFrame.__init__(self, *args, **kwargs)
         # self.info = {} # maybe for later
-
         # indexes ('X', 'y', 'train', 'categorical', 'y_test', etc.)
         self.indexes = {'header': range(5)} if indexes is None else indexes
-
         # find categorical and numerical variables
         if 'numerical' not in self.indexes.keys():
             self.get_types()
-
         # train test split
         if 'train' not in self.indexes.keys():
             self.train_test_split()
@@ -162,14 +158,16 @@ class AutoData(pd.DataFrame):
         return rows, columns
 
     def flush_index(self, key=None):
-        """ Delete useless indexes for a specific set.
-            For example:
-              key='X_train'
-              -> delete 'test' and 'y' indexes
-
-            Maybe useless.
+        """ For now: delete non-existing columns from indexes.
+            #Delete useless indexes for a specific set.
+            #For example:
+            #  key='X_train'
+            #  -> delete 'test' and 'y' indexes
+            #Maybe useless.
         """
-        pass
+        self.indexes['categorical'] = [x for x in self.indexes['categorical'] if x in self.columns]
+        self.indexes['numerical'] = [x for x in self.indexes['numerical'] if x in self.columns]
+        self.get_types()
 
     def get_data(self, key=None):
         """ Get data.
@@ -265,11 +263,9 @@ class AutoData(pd.DataFrame):
         """
         N = self.shape[0]
         split = round(N * (1 - test_size))
-
         train_index = range(split)
         valid_index = []
         test_index = range(split, N - 1)
-
         self.set_index('train', train_index)
         self.set_index('valid', valid_index)
         self.set_index('test', test_index)
@@ -279,11 +275,9 @@ class AutoData(pd.DataFrame):
             Define the column(s) representing a class (y).
         """
         X = list(self)  # column names
-
         # no class (re-initialize)
         if y is None:
             self.set_index('y', [])
-
         # y is 1 column
         elif isinstance(y, str) or isinstance(y, int):
             self.set_index('y', [y])
@@ -291,7 +285,6 @@ class AutoData(pd.DataFrame):
                 X.remove(y)
             except:
                 raise Exception('Column "{}" does not exist.'.format(y))
-
         # y is array-like
         else:
             self.set_index('y', y)
@@ -322,23 +315,17 @@ class AutoData(pd.DataFrame):
         """
         data = self.copy()
         rows, columns = self.get_index(key)
-
         for column in columns:
             if method == 'remove':
                 data = imputation.remove(data, column)
-
             elif method == 'most':
                 data = imputation.most(data, column)
-
             elif method == 'mean':
                 data = imputation.mean(data, column)
-
             elif method == 'median':
                 data = imputation.median(data, column)
-
             else:
                 raise Exception('Unknown imputation method: {}'.format(method))
-
         return data
 
     def normalization(self, method='standard', key=None):
@@ -353,17 +340,13 @@ class AutoData(pd.DataFrame):
         for column in columns:
             if method == 'standard':
                 data = normalization.standard(data, column)
-
                 # TODO:
                 #train, (mean, std) = normalization.standard(train, column, return_param=True)
                 #test = normalization.standard(test, column, mean, std)
-
             elif method in ['min-max', 'minmax', 'min_max']:
                 data = normalization.min_max(data, column)
-
             else:
                 raise Exception('Unknown normalization method: {}'.format(method))
-
         return data
 
     def encoding(self, method='label', key=None):
@@ -375,10 +358,13 @@ class AutoData(pd.DataFrame):
         """
         data = self.copy()
         rows, columns = self.get_index(key)
-
         for column in columns:
-            data = encoding.label(data, column)
-
+            if method == 'label':
+                data = encoding.label(data, column)
+            elif method in ['onehot', 'one_hot', 'one-hot']:
+                data = encoding.one_hot(data, column) # TODO: fix class behaviour
+            else:
+                raise Exception('Unknow encoding method: {}'.format(method))
         return data
 
     def pca(self, key=None, verbose=False, **kwargs):

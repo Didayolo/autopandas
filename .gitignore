@@ -6,4 +6,5 @@ docs/_build
 autopandas.egg-info
 dist/
 update.sh
+local_update.sh
 build/
