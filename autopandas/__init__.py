@@ -4,4 +4,4 @@
 """ Process, visualize and use data easily.
 """
 
-from .autopandas import *
+from autopandas import *
