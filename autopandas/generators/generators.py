@@ -6,4 +6,8 @@ from .vae import VAE
 from .anm import ANM
 
 # TODO
-# GAN, WGAN, Copula
+# GAN, WGAN, medGAN
+# Copula
+# Gaussian multivariate
+# Parzen Windows
+# SAM

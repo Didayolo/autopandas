@@ -5,7 +5,7 @@ matplotlib
 seaborn
 sklearn
 auto-sklearn
-#scipy
+scipy
 gensim
 keras
 tensorflow

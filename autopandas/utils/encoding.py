@@ -14,14 +14,13 @@ from gensim.models.word2vec import Word2Vec
 from random import shuffle
 
 def none(data, column):
-    """ Remove column from data
+    """ Remove column from data.
     """
     data.drop([column], axis=1, inplace=True)
     return data
 
 def label(data, column):
-    """
-        Performs label encoding.
+    """ Performs label encoding.
         Example:
             Color: ['blue', 'green', 'blue', 'pink']
             is encoded by
@@ -36,8 +35,7 @@ def label(data, column):
     return data
 
 def one_hot(data, column, rare=False, coeff=0.1):
-    """
-        Performs one-hot encoding.
+    """ Performs one-hot encoding.
         Example:
             Color: ['black', 'white', 'white']
             is encoded by
@@ -62,8 +60,7 @@ def one_hot(data, column, rare=False, coeff=0.1):
     return data
 
 def likelihood(x, column, feat_type=None, mapping=None, return_param=False):
-    """
-        Performs likelihood encoding.
+    """ Performs likelihood encoding.
 
         :param df: Data
         :param column: Column to encode
@@ -145,8 +142,7 @@ def count(x, column, mapping=None, probability=False, return_param=False):
     return x
 
 def target(x, column, target, mapping=None, return_param=False):
-    """
-        Performs target encoding.
+    """ Performs target encoding.
 
         :param df: Data
         :param column: Column to encode

@@ -13,6 +13,7 @@ import sys
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import pandas as pd
+import random
 
 # Import project files
 from .utils import imputation as imputation
@@ -138,7 +139,7 @@ class AutoData(pd.DataFrame):
         self.indexes[key] = value
 
     def get_index(self, key=None):
-        """ Return rows, columns
+        """ Return rows, columns.
         """
         if key is None:
             rows = self.index
@@ -165,8 +166,13 @@ class AutoData(pd.DataFrame):
             #  -> delete 'test' and 'y' indexes
             #Maybe useless.
         """
-        self.indexes['categorical'] = [x for x in self.indexes['categorical'] if x in self.columns]
-        self.indexes['numerical'] = [x for x in self.indexes['numerical'] if x in self.columns]
+        # Rows
+        # Delete from indexes non-existing rows
+
+        # Columns
+        for k in ['categorical', 'numerical', 'X', 'y']:
+            if k in self.indexes:
+                self.indexes[k] = [x for x in self.indexes[k] if x in self.columns]
         self.get_types()
 
     def get_data(self, key=None):
@@ -258,14 +264,20 @@ class AutoData(pd.DataFrame):
                          shuffle=True,
                          valid=False,
                          valid_size=0.1):
-        """ Procedure
-            TODO: shuffle
+        """ Procedure doing the train/test split and store it into self.indexes.
+            :param test_size: proportion of examples in test set.
+            :param shuffle: whether to shuffle examples or not.
+            :param valid: whether to do a train/valid/test split or not (not implemented yet).
+            :param valid_size: proportion of example in validation set (not implemented yet).
         """
         N = self.shape[0]
+        index = list(range(N))
+        if shuffle:
+            random.shuffle(index)
         split = round(N * (1 - test_size))
-        train_index = range(split)
+        train_index = index[:split]
         valid_index = []
-        test_index = range(split, N - 1)
+        test_index = index[split:]
         self.set_index('train', train_index)
         self.set_index('valid', valid_index)
         self.set_index('test', test_index)
@@ -359,10 +371,14 @@ class AutoData(pd.DataFrame):
         data = self.copy()
         rows, columns = self.get_index(key)
         for column in columns:
-            if method == 'label':
+            if method in ['none', 'drop'] or method is None:
+                data = encoding.none(data, column)
+                data.flush_index()
+            elif method == 'label':
                 data = encoding.label(data, column)
             elif method in ['onehot', 'one_hot', 'one-hot']:
                 data = encoding.one_hot(data, column) # TODO: fix class behaviour
+                data.flush_index()
             else:
                 raise Exception('Unknow encoding method: {}'.format(method))
         return data
@@ -403,6 +419,8 @@ class AutoData(pd.DataFrame):
             :return: Transformed data
             :rtype: AutoData
         """
+        if 'y' not in self.indexes:
+            raise Exception('No class is defined. Please use set_class method to define one.')
         return AutoData(
             reduction.lda(self, key=key, verbose=verbose, **kwargs))
 
