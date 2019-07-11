@@ -1,5 +1,8 @@
 import numpy as np
-from .metric import distance
+#from .metric import distance
+
+def distance():
+    pass
 
 def nnaa(data1, data2, distance_func=None):
     """ Compute nearest neighbors adversarial accuracy
