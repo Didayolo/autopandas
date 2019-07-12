@@ -168,7 +168,7 @@ def ks_test(X1, X2):
 def maximum_mean_discrepancy(A, B):
     """ Compute the mean_discrepancy statistic between x and y.
     """
-    # TODO...
+    # TODO
     X = np.concatenate((A, B))
     #X = th.cat([x, y], 0)
     # dot product between all combinations of rows in 'X'

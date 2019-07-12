@@ -4,7 +4,6 @@
 # TODO #####################################
 # Documentation (on code and notebook)
 # Clean other modules
-# Check todo-lists below
 ############################################
 
 # Imports
@@ -80,8 +79,8 @@ def from_train_test(train, test):
         test = AutoData(test)
     # Concatenate by rows
     ad = AutoData.append(train, test)
-    ad.set_index('train', range(0, len(train)))
-    ad.set_index('test', range(len(train), len(ad)))
+    ad.set_indexes('train', range(0, len(train)))
+    ad.set_indexes('test', range(len(train), len(ad)))
     return ad
 
 def from_X_y(X, y):
@@ -94,8 +93,8 @@ def from_X_y(X, y):
         y = AutoData(y)
     # Concatenate by columns
     ad = AutoData.join(X, y, lsuffix='_X', rsuffix='_y')
-    ad.set_index('X', X.columns)
-    ad.set_index('y', y.columns)
+    ad.set_indexes('X', X.columns)
+    ad.set_indexes('y', y.columns)
     return ad
 
 def plot(ad1, ad2, **kwargs):
@@ -163,7 +162,7 @@ class AutoData(pd.DataFrame):
     def to_automl(self):
         pass
 
-    def set_index(self, key, value):
+    def set_indexes(self, key, value):
         self.indexes[key] = value
 
     def get_index(self, key=None):
@@ -303,9 +302,9 @@ class AutoData(pd.DataFrame):
         train_index = index[:split]
         valid_index = []
         test_index = index[split:]
-        self.set_index('train', train_index)
-        self.set_index('valid', valid_index)
-        self.set_index('test', test_index)
+        self.set_indexes('train', train_index)
+        self.set_indexes('valid', valid_index)
+        self.set_indexes('test', test_index)
 
     def set_class(self, y=None):
         """ Procedure
@@ -314,23 +313,23 @@ class AutoData(pd.DataFrame):
         X = list(self)  # column names
         # no class (re-initialize)
         if y is None:
-            self.set_index('y', [])
+            self.set_indexes('y', [])
         # y is 1 column
         elif isinstance(y, str) or isinstance(y, int):
-            self.set_index('y', [y])
+            self.set_indexes('y', [y])
             try:
                 X.remove(y)
             except:
                 raise Exception('Column "{}" does not exist.'.format(y))
         # y is array-like
         else:
-            self.set_index('y', y)
+            self.set_indexes('y', y)
             for name in y:
                 try:
                     X.remove(name)
                 except:
                     raise Exception('Column "{}" does not exist.'.format(name))
-        self.set_index('X', X)
+        self.set_indexes('X', X)
 
     def has_class(self):
         """ Return True if 'y' is defined and corresponds to one column (or more).
@@ -510,7 +509,7 @@ class AutoData(pd.DataFrame):
 
             Return the metric score of a model trained and tested on data.
             If a test set is defined ('test' parameter), the model is trained on 'data' and tested on 'test'.
-            
+
             :param model: Model to fit and test on data.
             :param metric: scoring function.
             :param method: 'baseline' or 'auto'. Useful only if model is None.

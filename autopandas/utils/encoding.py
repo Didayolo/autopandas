@@ -241,8 +241,7 @@ def frequency(columns, probability=False):
     return res
 
 def cat2vec(data, size=6, window=8, verbose=True):
-    """ TODO
-        Based on Yonatan Hadar's implementation
+    """ TODO. Based on Yonatan Hadar's implementation.
     """
     x_w2v = copy.deepcopy(data)
     names = list(x_w2v.columns.values)

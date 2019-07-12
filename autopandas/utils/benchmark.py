@@ -1,5 +1,6 @@
 # Benchmark Functions
 
+import numpy as np
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 from sklearn.ensemble import RandomForestClassifier
@@ -69,11 +70,14 @@ def score(data, model=None, metric=None, method='baseline', fit=True, test=None,
     if fit:
         model.fit(X_train, y_train)
     # Let's go!
-    model_info = str(model)
-    report = classification_report(model.predict(X_test), y_test)
+    y_pred = model.predict(X_test)
     if verbose:
-        print(model_info)
-        print(report)
+        print(model)
+        print(classification_report(y_test, y_pred))
         print('Metric: {}'.format(metric))
-    return metric(y_test, model.predict(X_test))
+    try:
+        score = metric(y_test, y_pred, average='weighted', labels=np.unique(y_pred))
+    except:
+        score = metric(y_test, y_pred)
+    return score
     #return model.score(X_test, y_test)

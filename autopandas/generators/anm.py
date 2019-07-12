@@ -4,24 +4,27 @@
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.base import clone
 
 class ANM():
-    def __init__(self, model=None, **kwargs):
-        """ Data generator using multiple imputations with random forest
+    def __init__(self, model=None):
+        """ Data generator using multiple imputations with random forest.
+
+            :param model: Model used for imputations.
         """
         # List of Random Forests
         self.models = []
-        # Random forest from sklearn
-        # TODO custom models
-        self.regressor = RandomForestRegressor
-        self.classifier = RandomForestClassifier
+        if model is None: # Default Random Forest
+            self.regressor = RandomForestRegressor()
+            self.classifier = RandomForestClassifier()
+        else: # Custom model
+            self.regressor = model
+            self.classifier = model
         # Store data to be able to sample from original data
         self.data = None
 
-    def fit(self, data, **kwargs):
+    def fit(self, data):
         """ Fit one random forest for each column, given the others.
-
-            Use kwargs to define model's (Random Forest) parameters.
         """
         self.data = data
         for i in range(len(data.columns)):
@@ -30,20 +33,19 @@ class ANM():
             X = data.drop(data.columns[i], axis=1)
             # Regressor or classifier
             if data.columns[i] in data.indexes['numerical']:
-                model = self.regressor(**kwargs)
+                model = clone(self.regressor)
             else:
-                model = self.classifier(**kwargs)
+                model = clone(self.classifier)
             model.fit(X, y)
             self.models.append(model)
 
-    def partial_fit_generate(self, n=1, p=0.8, replace=True, **kwargs):
+    def partial_fit_generate(self, n=1, p=0.8, replace=True):
         """ Fit and generate for high dimensional case.
             To avoid memory error, features are trained and generated one by one.
 
             :param p: The probability of changing a value
                         if p=0, the generated dataset will be equals to the original
                         if p=1, the generated dataset will contains only new values
-            :param kwargs: Random Forest parameters
             :return: Generated data
             :rtype: pd.DataFrame
         """
@@ -58,9 +60,9 @@ class ANM():
             X = data.drop(data.columns[i], axis=1)
             # Regressor or classifier
             if data.columns[i] in data.indexes['numerical']:
-                model = self.regressor(**kwargs)
+                model = self.regressor
             else:
-                model = self.classifier(**kwargs)
+                model = self.classifier
             # FIT
             model.fit(X, Y)
             # GENERATE
@@ -77,7 +79,7 @@ class ANM():
 
     def sample(self, n=1, p=0.8, replace=True):
         """ Generate n rows by copying data and then do values imputations.
-        
+
             :param n: Number of examples to sample
             :param p: The probability of changing a value
                         if p=0, the generated dataset will be equals to the original
