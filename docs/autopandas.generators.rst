@@ -12,6 +12,22 @@ autopandas.generators.anm module
     :undoc-members:
     :show-inheritance:
 
+autopandas.generators.artificial module
+---------------------------------------
+
+.. automodule:: autopandas.generators.artificial
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+autopandas.generators.copula module
+-----------------------------------
+
+.. automodule:: autopandas.generators.copula
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 autopandas.generators.copycat module
 ------------------------------------
 
