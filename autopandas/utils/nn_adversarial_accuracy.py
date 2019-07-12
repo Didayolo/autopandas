@@ -1,5 +1,7 @@
 '''Compute the nearest neighbor adversarial accuracy'''
 import os
+
+'''
 import sys
 from itertools import product
 import pickle as pkl
@@ -125,3 +127,4 @@ class NearestNeighborMetrics():
         a_tr = np.mean(np.array(a_tr_a))
         a_te = np.mean(np.array(a_te_a))
         return a_tr, a_te
+'''

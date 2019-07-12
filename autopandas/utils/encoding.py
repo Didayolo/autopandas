@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import LabelEncoder
-from sklearn.feature_extraction import FeatureHasher
 from sklearn.model_selection import train_test_split
 import bisect
 import copy
@@ -62,7 +61,7 @@ def one_hot(data, column, rare=False, coeff=0.1):
     data.drop([column], axis=1, inplace=True)
     return data
 
-def likelihood(x, column, feat_type=None, mapping=None, return_param=False):
+def likelihood(data, column, mapping=None, return_param=False):
     """ Performs likelihood encoding.
 
         :param df: Data
@@ -72,40 +71,31 @@ def likelihood(x, column, feat_type=None, mapping=None, return_param=False):
         :return: Encoded data
         :rtype: pd.DataFrame
     """
-    # Numerical columns.
-    if feat_type is None:
-        feat_type = np.array(processing.get_types(x))
-
-    numericals = x.columns[feat_type == 'Numerical']
-    categories = x[column].unique()
-
+    numericals = data.indexes['numerical'] # numerical variables
+    categories = data[column].unique()
     if mapping is None:
         mapping = dict()
         try:
-            # NOT OPTIMIZED: PCA will be computed for every variable
+            # TODO: NOT OPTIMIZED: PCA will be computed for every variable
             pca = PCA()
-            principal_axe = pca.fit(x[numericals].values).components_[0, :]
+            principal_axe = pca.fit(data[numericals].values).components_[0, :]
             # First principal component.
-            pc1 = (principal_axe * x[numericals]).sum(axis=1)
+            pc1 = (principal_axe * data[numericals]).sum(axis=1)
         except:
-            raise OSError('No numerical columns found, cannot apply likelihood encoding.')
+            raise Exception('No numerical columns found, cannot apply likelihood encoding.')
 
         for i, category in enumerate(categories):
-            mapping[category] = np.mean(pc1[x[column]==category])
-
+            mapping[category] = np.mean(pc1[data[column]==category])
     else:
         for category in categories:
             if category not in mapping:
                 mapping[category] = 0
-
-    x[column] = x[column].map(mapping)
-
+    data[column] = data[column].map(mapping)
     if return_param:
-        return x, mapping
-    return x
+        return data, mapping
+    return data
 
-
-def count(x, column, mapping=None, probability=False, return_param=False):
+def count(data, column, mapping=None, probability=False, return_param=False):
     """ Performs frequency encoding.
 
         Categories are replaced by their number of occurence.
@@ -119,33 +109,28 @@ def count(x, column, mapping=None, probability=False, return_param=False):
         :return: Encoded data
         :rtype: pd.DataFrame
     """
-    categories = x[column].unique()
-
+    categories = data[column].unique()
     if mapping is None:
         mapping = dict()
-        for e in x[column]:
+        for e in data[column]:
             if e in mapping:
                 mapping[e] += 1
             else:
                 mapping[e] = 1
-
     else:
         for category in categories:
             if category not in mapping:
                 mapping[category] = 0 # TODO
-
     if probability:
         factor = 1.0 / sum(mapping.values())
         for k in mapping:
             mapping[k] = float(format(mapping[k] * factor, '.3f'))
-
-    x[column] = x[column].map(mapping)
-
+    data[column] = data[column].map(mapping)
     if return_param:
-        return x, mapping
-    return x
+        return data, mapping
+    return data
 
-def target(x, column, target, mapping=None, return_param=False):
+def target(data, column, target, mapping=None, return_param=False):
     """ Performs target encoding.
 
         :param df: Data
@@ -156,38 +141,20 @@ def target(x, column, target, mapping=None, return_param=False):
         :return: Encoded data
         :rtype: pd.DataFrame
     """
-    target = x[target]
-
-    categories = x[column].unique()
-
+    target = data[target]
+    categories = data[column].unique()
     if mapping is None:
         mapping = dict()
         for i, category in enumerate(categories):
-            mapping[category] = np.mean(target[x[column]==category]).round(3)
-
+            mapping[category] = np.mean(target[data[column]==category]).round(3)
     else:
         for category in categories:
             if category not in mapping:
                 mapping[category] = 0
-
-    x[column] = x[column].map(mapping)
-
+    data[column] = data[column].map(mapping)
     if return_param:
-        return x, mapping
-    return x
-
-
-def feature_hashing(x, n_features=10, verbose=True):
-    """ Feature hashing
-        ...
-    """
-    h = FeatureHasher(n_features=n_features)
-    x = x.to_dict('records')
-    x = h.transform(x)
-    x = x.toarray() # to array
-    x = pd.DataFrame(x) # to df
-    return x
-
+        return data, mapping
+    return data
 
 def frequency(columns, probability=False):
     """ /!\ Warning: Take only column(s) and not DataFrame /!\

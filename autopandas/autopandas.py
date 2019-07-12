@@ -387,7 +387,7 @@ class AutoData(pd.DataFrame):
                 raise Exception('Unknown normalization method: {}'.format(method))
         return data
 
-    def encoding(self, method='label', key=None):
+    def encoding(self, method='label', key=None, target=None):
         """ Encode categorical variables.
 
             :param method: 'none', 'label', 'one-hot', 'rare-one-hot', 'target', 'likelihood', 'count', 'probability'
@@ -400,14 +400,28 @@ class AutoData(pd.DataFrame):
         for column in columns:
             if method in ['none', 'drop'] or method is None:
                 data = encoding.none(data, column)
-                data.flush_index()
             elif method == 'label':
                 data = encoding.label(data, column)
             elif method in ['onehot', 'one_hot', 'one-hot']:
                 data = encoding.one_hot(data, column) # TODO: fix class behaviour
-                data.flush_index()
+            elif method == 'likelihood':
+                data = encoding.likelihood(data, column)
+            elif method == 'count':
+                data = encoding.count(data, column)
+            elif method == 'target':
+                if target is None:
+                    if not self.has_class():
+                        raise Exception('You need to specify a target column or to set a class to use target encoding.')
+                    else:
+                        target = self.indexes['y'][0]
+                        num_classes = len(self.indexes['y']) # TODO: multiclass?
+                        if num_classes > 1:
+                            print('WARNING: only 1 over {} classes will be used for the target encoding.'.format(num_classes))
+                data = encoding.target(data, column, target)
             else:
                 raise Exception('Unknow encoding method: {}'.format(method))
+        if encoding != 'label':
+            data.flush_index() # update columns indexes for encoding that change number of columns
         return data
 
     def pca(self, key=None, verbose=False, **kwargs):
@@ -437,8 +451,7 @@ class AutoData(pd.DataFrame):
             :return: Transformed data
             :rtype: AutoData
         """
-        return AutoData(
-            reduction.tsne(self, key=key, verbose=verbose, **kwargs))
+        return AutoData(reduction.tsne(self, key=key, verbose=verbose, **kwargs))
 
     def lda(self, key=None, verbose=False, **kwargs):
         """ Compute Linear Discriminant Analysis.
@@ -450,13 +463,12 @@ class AutoData(pd.DataFrame):
         """
         if 'y' not in self.indexes:
             raise Exception('No class is defined. Please use set_class method to define one.')
-        return AutoData(
-            reduction.lda(self, key=key, verbose=verbose, **kwargs))
+        return AutoData(reduction.lda(self, key=key, verbose=verbose, **kwargs))
 
     def reduction(self, method='pca', key=None, verbose=False, **kwargs):
         """ Dimensionality reduction
 
-            :param method: 'pca', 'lda' or 'tsne'
+            :param method: 'pca', 'lda', 'tsne' or 'hashing'
         """
         data = self.get_data(key)
         if method == 'pca':
@@ -465,8 +477,11 @@ class AutoData(pd.DataFrame):
             data = data.tsne(key=key, verbose=verbose, **kwargs)
         elif method == 'lda':
             data = data.lda(key=key, verbose=verbose, **kwargs)
+        elif method in ['hashing', 'feature_hashing', 'feature-hashing']:
+            data = AutoData(reduction.feature_hashing(data, key=key, **kwargs))
         else:
             raise Exception('Unknown dimensionality reduction method: {}'.format(method))
+        data.flush_index() # update columns index after dimensionality change
         return data
 
     ## 3. ###################### VISUALIZATION #######################

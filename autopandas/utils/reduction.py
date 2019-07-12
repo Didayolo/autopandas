@@ -3,7 +3,8 @@
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-
+from sklearn.feature_extraction import FeatureHasher
+import pandas as pd
 
 def pca(data, key=None, verbose=False, **kwargs):
     """ Compute PCA.
@@ -71,3 +72,16 @@ def lda(data, key=None, verbose=False, **kwargs):
         raise Exception("LDA can't handle multi-output class. Use set_class method to define another target before calling lda.")
     X = lda.fit_transform(X, y)
     return X
+
+def feature_hashing(data, key=None, n_features=10, **kwargs):
+    """ Feature hashing.
+
+        :param n_features: Wanted number of features after feature hashing.
+    """
+    data = data.get_data(key)
+    h = FeatureHasher(n_features=n_features, **kwargs)
+    data = data.to_dict('records')
+    data = h.transform(data)
+    data = data.toarray() # to array
+    data = pd.DataFrame(data) # to df
+    return data
