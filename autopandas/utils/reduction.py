@@ -7,10 +7,17 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 def pca(data, key=None, verbose=False, **kwargs):
     """ Compute PCA.
-        :param verbose: Display additional information during run
-        :param **kwargs: Additional parameters for PCA (see sklearn doc)
-        :return: Transformed data
-        :rtype: AutoData
+        Use kwargs for additional PCA parameters (cf. sklearn doc).
+
+        Parameters
+        ----------
+        key : Indexes key to select data.
+        verbose : Display additional information during run.
+
+        Returns
+        -------
+        AutoData
+            Transformed data
     """
     pca = PCA(**kwargs)
     X = pca.fit_transform(data.get_data(key))
@@ -27,10 +34,17 @@ def pca(data, key=None, verbose=False, **kwargs):
 
 def tsne(data, key=None, verbose=False, **kwargs):
     """ Compute T-SNE.
-        :param verbose: Display additional information during run
-        :param **kwargs: Additional parameters for T-SNE (see sklearn doc)
-        :return: Transformed data
-        :rtype: AutoData
+        Use kwargs for additional T-SNE parameters (cf. sklearn doc)
+
+        Parameters
+        ----------
+        key : Indexes key to select data.
+        verbose : Display additional information during run.
+
+        Returns
+        -------
+        AutoData
+            Transformed data
     """
     tsne = TSNE(**kwargs)
     X = tsne.fit_transform(data.get_data(key))
@@ -38,10 +52,17 @@ def tsne(data, key=None, verbose=False, **kwargs):
 
 def lda(data, key=None, verbose=False, **kwargs):
     """ Compute Linear Discriminant Analysis.
-        :param verbose: Display additional information during run
-        :param **kwargs: Additional parameters for LDA (see sklearn doc)
-        :return: Transformed data
-        :rtype: AutoData
+        Use kwargs for additional LDA parameters (cf. sklearn doc)
+
+        Parameters
+        ----------
+        key : Indexes key to select data.
+        verbose : Display additional information during run.
+
+        Returns
+        -------
+        AutoData
+            Transformed data
     """
     lda = LinearDiscriminantAnalysis(**kwargs)
     X = data.get_data('X').get_data(key)

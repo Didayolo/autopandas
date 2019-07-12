@@ -9,14 +9,23 @@ from autosklearn.regression import AutoSklearnRegressor
 
 def score(data, model=None, metric=None, method='baseline', fit=True, test=None, verbose=False):
     """ Benchmark, a.k.a. Utility.
+
         Return the metric score of a model trained and tested on data.
         If a test set is defined ('test' parameter), the model is trained on 'data' and tested on 'test'.
-        :param model: Model to fit and test on data.
-        :param metric: scoring function.
-        :param method: 'baseline' or 'auto'. Useful only if model is None.
-        :param fit: If True, fit the model.
-        :param test: Test is an optional DataFrame to use as the test set.
-        :param verbose: If True, prints model information, classification report and metric function.
+
+        Parameters
+        ----------
+        model : Model to fit and test on data.
+        metric : scoring function.
+        method : 'baseline' or 'auto'. Useful only if model is None.
+        fit : If True, fit the model.
+        test : Test is an optional DataFrame to use as the test set.
+        verbose : If True, prints model information, classification report and metric function.
+
+        Returns
+        -------
+        float
+            Metric score of the model trained and tested on data.
     """
     if 'y' not in data.indexes:
         raise Exception('No class defined. Please use set_class method before calling score.')
