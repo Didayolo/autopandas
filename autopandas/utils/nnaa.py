@@ -1,6 +1,6 @@
 import numpy as np
 #from .metric import distance
-
+'''
 def distance():
     pass
 
@@ -20,3 +20,4 @@ def nnaa(data1, data2, distance_func=None):
     HOT = distance_matrix.min(axis=0), distance_matrix.min(axis=1)
     # besoin de dist(d1, d1) et dist(d2, d2)
     return distance_matrix
+'''

@@ -4,6 +4,7 @@ import numpy as np
 import scipy as sp
 import random
 import matplotlib.pyplot as plt
+from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler
 from scipy.spatial.distance import pdist, cdist, squareform
 from scipy.stats import ks_2samp
@@ -16,13 +17,11 @@ import itertools
 from .nnaa import nnaa
 
 def distance(x, y, axis=None, norm='euclidean'):
-    """
-        Compute the distance between x and y.
-
+    """ Compute the distance between x and y.
         :param x: Array-like, first point
         :param y: Array-like, second point
         :param axis: Axis of x along which to compute the vector norms.
-        :param norm: 'l0', 'manhattan', 'euclidean', 'minimum', 'maximum'
+        :param norm: 'l0', 'manhattan', 'euclidean', 'minimum' or 'maximum'
         :return: Distance value
         :rtype: float
     """
@@ -31,7 +30,6 @@ def distance(x, y, axis=None, norm='euclidean'):
         z = [x - y]
     else:
         z = x - y
-
     if norm == 'manhattan' or norm == 'l1':
         return np.linalg.norm(z, ord=1, axis=axis)
     elif norm == 'euclidean' or norm == 'l2':
@@ -62,10 +60,8 @@ def distance(x, y, axis=None, norm='euclidean'):
 #    pass
 
 def distance_correlation(X, Y):
-    """
-        Compute the distance correlation function.
+    """ Compute the distance correlation function.
         Works with X and Y of different dimensions (but same number of samples mandatory).
-
         :param X: Data
         :param y: Class data
         :return: Distance correlation
@@ -94,7 +90,8 @@ def distance_correlation(X, Y):
     return dcor
 
 def relief_divergence(X1, X2):
-    """ Divergence based on ( dist_to_nearest_miss - dist_to_nearest_hit )"""
+    """ Divergence based on ( dist_to_nearest_miss - dist_to_nearest_hit )
+    """
     p1, n = X1.shape
     p2, nn = X2.shape
     assert(n==nn)
@@ -113,7 +110,8 @@ def relief_divergence(X1, X2):
 
 def acc_stat (solution, prediction):
     """ Return accuracy statistics TN, FP, TP, FN
-     Assumes that solution and prediction are binary 0/1 vectors."""
+        Assumes that solution and prediction are binary 0/1 vectors.
+     """
      # This uses floats so the results are floats
     TN = sum(np.multiply((1-solution), (1-prediction)))
     FN = sum(np.multiply(solution, (1-prediction)))
@@ -126,7 +124,8 @@ def acc_stat (solution, prediction):
     return (TN, FP, TP, FN)
 
 def bac_metric (solution, prediction):
-    """ Compute the balanced accuracy for binary classification. """
+    """ Compute the balanced accuracy for binary classification.
+    """
     [tn,fp,tp,fn] = acc_stat(solution, prediction)
     # Bounding to avoid division by 0
     eps = 1e-15
@@ -140,9 +139,10 @@ def bac_metric (solution, prediction):
     return bac
 
 def nn_discrepancy(X1, X2):
-    """Use 1 nearest neighbor method to determine discrepancy X1 and X2.
-    If X1 and X2 are very different, it is easy to classify them
-    thus bac > 0.5. Otherwise, if they are similar, bac ~ 0.5."""
+    """ Use 1 nearest neighbor method to determine discrepancy between X1 and X2.
+        If X1 and X2 are very different, it is easy to classify them
+        thus bac > 0.5. Otherwise, if they are similar, bac ~ 0.5.
+    """
     n1 = X1.shape[0]
     n2 = X2.shape[0]
     X = np.concatenate((X1, X2))
@@ -154,7 +154,8 @@ def nn_discrepancy(X1, X2):
     return max(0, 2*bac_metric(Y, Ypred)-1)
 
 def ks_test(X1, X2):
-    """ Paired Kolmogorov-Smirnov test for all matched pairs of variables in matrices X1 and X2."""
+    """ Paired Kolmogorov-Smirnov test for all matched pairs of variables in matrices X1 and X2.
+    """
     n =X1.shape[1]
     ks=np.zeros(n)
     pval=np.zeros(n)
@@ -163,7 +164,8 @@ def ks_test(X1, X2):
     return (ks, pval)
 
 def maximum_mean_discrepancy(A, B):
-        """Compute the mean_discrepancy statistic between x and y"""
+        """ Compute the mean_discrepancy statistic between x and y.
+        """
         # TODO...
         X = np.concatenate((A, B))
         #X = th.cat([x, y], 0)
@@ -185,7 +187,8 @@ def maximum_mean_discrepancy(A, B):
         return L
 
 def cov_discrepancy(A, B):
-    """Root mean square difference in covariance matrices"""
+    """ Root mean square difference in covariance matrices.
+    """
     CA = np.cov(A, rowvar=False);
     CB = np.cov(B, rowvar=False);
     n = CA.shape[0]
@@ -193,14 +196,15 @@ def cov_discrepancy(A, B):
     return L
 
 def corr_discrepancy(A, B):
-    """Root mean square difference in correlation matrices"""
+    """ Root mean square difference in correlation matrices.
+    """
     CA = np.corrcoef(A, rowvar=False);
     CB = np.corrcoef(B, rowvar=False);
     n = CA.shape[0]
     L = np.sqrt( np.linalg.norm(CA-CB) / n**2 )
     return L
 
-def discriminant(data1, data2, model=LogisticRegression(), metric=None, name1='Dataset 1', name2='Dataset 2', same_size=False):
+def discriminant(data1, data2, model=LogisticRegression(), metric=None, name1='Dataset 1', name2='Dataset 2', same_size=False, verbose=False):
     """ Return the scores of a classifier trained to differentiate data1 and data2.
 
         :param model: The classifier. It has to have fit(X,y) and score(X,y) methods.
@@ -209,7 +213,8 @@ def discriminant(data1, data2, model=LogisticRegression(), metric=None, name1='D
         :return: Classification report (precision, recall, f1-score).
         :rtype: str
     """
-    # TODO /!\
+    if metric is None:
+        metric = accuracy_score
     # check if train/test split already exists or do it
     if not data1.has_split():
         data1.train_test_split()
@@ -245,4 +250,8 @@ def discriminant(data1, data2, model=LogisticRegression(), metric=None, name1='D
     target_names = [name1, name2]
     model_info = str(model)
     report = classification_report(model.predict(X_test), y_test, target_names=target_names)
-    return model_info + '\n' + report + '\n'
+    if verbose:
+        print(model_info)
+        print(report)
+        print('Metric: {}'.format(metric))
+    return metric(y_test, model.predict(X_test))

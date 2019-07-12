@@ -1,5 +1,7 @@
+# Copula generator: TODO
+
 from scipy.stats import gaussian_kde, norm
-from sklearn.preprocessing import LabelEncoder 
+from sklearn.preprocessing import LabelEncoder
 from sklearn.neighbors import KernelDensity
 import numpy as np
 
@@ -39,19 +41,19 @@ def marginal_retrofit(Xartif, Xreal):
     elif pa<pr:
         # oversample Xreal
         Xreal = resample(Xreal, replace='True', n_samples=pa)
-    # Otherwise do nothing   
-    
+    # Otherwise do nothing
+
     # Loop over variables
     for i in range(n):
         # Sort the values of both arrays
         Xa=Xartif[:,i]
-        Xr=Xreal[:,i]  
+        Xr=Xreal[:,i]
         idxa=np.argsort(Xa)
         idxr=np.argsort(Xr)
         # Substitute artificial value for corresponding real value at same rank
         Xa[idxa] = Xr[idxr]
         # replace initial column
-        Xretro[:,i] = Xa        
+        Xretro[:,i] = Xa
     return Xretro
 
 def copula_generate(X):
@@ -65,4 +67,3 @@ def copula_generate(X):
     X_artif = kernel.sample(X.shape[0])
     print('Marginal retrofitting...')
     return marginal_retrofit(X_artif, X)
-

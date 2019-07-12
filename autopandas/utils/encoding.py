@@ -61,7 +61,6 @@ def one_hot(data, column, rare=False, coeff=0.1):
 
 def likelihood(x, column, feat_type=None, mapping=None, return_param=False):
     """ Performs likelihood encoding.
-
         :param df: Data
         :param column: Column to encode
         :param mapping: Dictionary {category : value}

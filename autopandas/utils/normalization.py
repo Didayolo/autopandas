@@ -1,9 +1,7 @@
 # Function for normalization
 
 def standard(data, column, mean=None, std=None, return_param=False):
-    """
-        Performs standard normalization.
-
+    """ Performs standard normalization.
         :param data: Data
         :param column: Column to normalize
         :param mean: Mean, computed if not specified
@@ -15,18 +13,13 @@ def standard(data, column, mean=None, std=None, return_param=False):
     if not mean and not std:
         mean = data[column].mean()
         std = data[column].std()
-        
     data[column] = (data[column] - mean) / std
-
     if return_param:
         return data, (mean, std)
-
     return data
 
 def min_max(data, column, mini=None, maxi=None, return_param=False):
-    """
-        Performs min-max normalization.
-
+    """ Performs min-max normalization.
         :param data: Data
         :param column: Column to normalize
         :param mini: Minimum, computed if not specified
@@ -38,10 +31,7 @@ def min_max(data, column, mini=None, maxi=None, return_param=False):
     if not mini and not maxi:
         mini = data[column].min()
         maxi = data[column].max()
-
     data[column] = (data[column] - mini) / (maxi - mini)
-
     if return_param:
         return data, (mini, maxi)
-
     return data

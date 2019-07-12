@@ -11,7 +11,7 @@ import numpy as np
 from tqdm import tqdm
 
 class NearestNeighborMetrics():
-    """Calculate nearest neighbors and metrics"""
+    """ Calculate nearest neighbors and metrics. """
 
     def __init__(self, tr, te, synths):
         self.data = {'tr': tr, 'te': te}

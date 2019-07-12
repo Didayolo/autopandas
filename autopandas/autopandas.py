@@ -65,12 +65,37 @@ def read_automl(input_dir, basename):
     data.indexes['train'] = [0]
     """
 
+# memo
+# to concat df by columns: join
+# to concat df by rows: append
+######
+
 def from_train_test(train, test):
-    """ Create an AutoDataFrame from a train and a test DataFrame
+    """ Create an AutoData frame from a train and a test DataFrames.
     """
+    # Cast if needed
+    if not isinstance(train, pd.DataFrame):
+        train = AutoData(train)
+    if not isinstance(test, pd.DataFrame):
+        test = AutoData(test)
+    # Concatenate by rows
     ad = AutoData.append(train, test)
     ad.set_index('train', range(0, len(train)))
     ad.set_index('test', range(len(train), len(ad)))
+    return ad
+
+def from_X_y(X, y):
+    """ Create an AutoData frame from a X and a y (class) DataFrames.
+    """
+    # Cast if needed
+    if not isinstance(X, pd.DataFrame):
+        X = AutoData(X)
+    if not isinstance(y, pd.DataFrame):
+        y = AutoData(y)
+    # Concatenate by columns
+    ad = AutoData.join(X, y, lsuffix='_X', rsuffix='_y')
+    ad.set_index('X', X.columns)
+    ad.set_index('y', y.columns)
     return ad
 
 def plot(ad1, ad2, **kwargs):
@@ -89,8 +114,11 @@ def distance(ad1, ad2, method=None): #, **kwargs): TODO
     return ad1.distance(ad2, method=method) #, **kwargs)
 
 class AutoData(pd.DataFrame):
-    """ AutoData is a data structure extending Pandas Dataframe.
+    """ AutoData is a data structure extending Pandas DataFrame.
         The goal is to quickly get to grips with a dataset.
+        An AutoData object represents a 2D data frame with:
+          - Examples in rows
+          - Features in columns
     """
     _metadata = ['indexes']
 
@@ -213,10 +241,6 @@ class AutoData(pd.DataFrame):
         else:
             raise Exception('No class is defined. Please use set_class method to define one.')
 
-    # memo
-    # to concat df by columns: join
-    # to concat df by rows: append
-
     def merge(self, data):
         """ Same indexes but data is a modified part of self.
             Useless?
@@ -308,7 +332,7 @@ class AutoData(pd.DataFrame):
         self.set_index('X', X)
 
     def has_class(self):
-        """ Return True if 'y' is defined and corresponds to one column (or more)
+        """ Return True if 'y' is defined and corresponds to one column (or more).
         """
         return ('y' in self.indexes.keys()) and (self.indexes['y'] != [])
 
@@ -472,16 +496,20 @@ class AutoData(pd.DataFrame):
     ## 4. ######################## BENCHMARK ##########################
 
     # TODO
-    # Different scoring metrics
     # Score reports, confusion matrix
-    # Model selection
-    # Model tuning
 
-    def score(self, model=None, metric=None, method='baseline', fit=True):
-        """ Benchmark ...
+    def score(self, model=None, metric=None, method='baseline', fit=True, test=None, verbose=False):
+        """ Benchmark, a.k.a. Utility.
+            Return the metric score of a model trained and tested on data.
+            If a test set is defined ('test' parameter), the model is trained on 'data' and tested on 'test'.
+            :param model: Model to fit and test on data.
+            :param metric: scoring function.
+            :param method: 'baseline' or 'auto'. Useful only if model is None.
+            :param fit: If True, fit the model.
+            :param test: Test is an optional DataFrame to use as the test set.
+            :param verbose: If True, prints model information, classification report and metric function.
         """
-        return benchmark.score(
-            self, model=model, metric=metric, method=method, fit=fit)
+        return benchmark.score(self, model=model, metric=metric, method=method, fit=fit, verbose=verbose)
 
     # Distribution comparator
     def distance(self, data, method=None, **kwargs):

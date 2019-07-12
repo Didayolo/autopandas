@@ -18,7 +18,7 @@ def nll(y_true, y_pred):
 
 class KLDivergenceLayer(Layer):
     """ Identity transform layer that adds KL divergence
-    to the final model loss.
+        to the final model loss.
     """
     def __init__(self, *args, **kwargs):
         self.is_placeholder = True
@@ -33,7 +33,7 @@ class KLDivergenceLayer(Layer):
         return inputs
 
 class VAE():
-    """ Variational Autoencoder
+    """ Variational Autoencoder.
     """
     def __init__(self, original_dim, intermediate_dim=256, latent_dim=2, epsilon_std=1.0):
         """ :param original_dim: Input/output size.
