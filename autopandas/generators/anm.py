@@ -19,8 +19,9 @@ class ANM():
         self.data = None
 
     def fit(self, data, **kwargs):
-        """ Fit one random forest for each column, given the others
-            :param kwargs: Random Forest parameters
+        """ Fit one random forest for each column, given the others.
+
+            Use kwargs to define model's (Random Forest) parameters.
         """
         self.data = data
         for i in range(len(data.columns)):
@@ -43,7 +44,6 @@ class ANM():
                         if p=0, the generated dataset will be equals to the original
                         if p=1, the generated dataset will contains only new values
             :param kwargs: Random Forest parameters
-
             :return: Generated data
             :rtype: pd.DataFrame
         """
@@ -76,7 +76,8 @@ class ANM():
         return gen_data
 
     def sample(self, n=1, p=0.8, replace=True):
-        """ Generate n rows by copying data and then do values imputations
+        """ Generate n rows by copying data and then do values imputations.
+        
             :param n: Number of examples to sample
             :param p: The probability of changing a value
                         if p=0, the generated dataset will be equals to the original

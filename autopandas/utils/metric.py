@@ -18,6 +18,7 @@ import itertools
 
 def distance(x, y, axis=None, norm='euclidean'):
     """ Compute the distance between x and y.
+
         :param x: Array-like, first point
         :param y: Array-like, second point
         :param axis: Axis of x along which to compute the vector norms.
@@ -62,6 +63,7 @@ def distance(x, y, axis=None, norm='euclidean'):
 def distance_correlation(X, Y):
     """ Compute the distance correlation function.
         Works with X and Y of different dimensions (but same number of samples mandatory).
+
         :param X: Data
         :param y: Class data
         :return: Distance correlation
@@ -111,8 +113,8 @@ def relief_divergence(X1, X2):
 def acc_stat (solution, prediction):
     """ Return accuracy statistics TN, FP, TP, FN
         Assumes that solution and prediction are binary 0/1 vectors.
-     """
-     # This uses floats so the results are floats
+    """
+    # This uses floats so the results are floats
     TN = sum(np.multiply((1-solution), (1-prediction)))
     FN = sum(np.multiply(solution, (1-prediction)))
     TP = sum(np.multiply(solution, prediction))
@@ -164,27 +166,27 @@ def ks_test(X1, X2):
     return (ks, pval)
 
 def maximum_mean_discrepancy(A, B):
-        """ Compute the mean_discrepancy statistic between x and y.
-        """
-        # TODO...
-        X = np.concatenate((A, B))
-        #X = th.cat([x, y], 0)
-        # dot product between all combinations of rows in 'X'
-        #XX = X @ X.t()
-        # dot product of rows with themselves
-        # Old code : X2 = (X * X).sum(dim=1)
-        X2 = (X * X).sum(dim=1)
-        #X2 = XX.diag().unsqueeze(0)
-        # exponent entries of the RBF kernel (without the sigma) for each
-        # combination of the rows in 'X'
-        # -0.5 * (i^Ti - 2*i^Tj + j^Tj)
+    """ Compute the mean_discrepancy statistic between x and y.
+    """
+    # TODO...
+    X = np.concatenate((A, B))
+    #X = th.cat([x, y], 0)
+    # dot product between all combinations of rows in 'X'
+    #XX = X @ X.t()
+    # dot product of rows with themselves
+    # Old code : X2 = (X * X).sum(dim=1)
+    X2 = (X * X).sum(dim=1)
+    #X2 = XX.diag().unsqueeze(0)
+    # exponent entries of the RBF kernel (without the sigma) for each
+    # combination of the rows in 'X'
+    # -0.5 * (i^Ti - 2*i^Tj + j^Tj)
 
-        #exponent = XX - 0.5 * (X2.expand_as(XX) + X2.t().expand_as(XX))
+    #exponent = XX - 0.5 * (X2.expand_as(XX) + X2.t().expand_as(XX))
 
-        #lossMMD = np.sum(self.S * sum([(exponent * (1./bandwith)).exp() for bandwith in self.bandwiths]))
-        #L=lossMMD.sqrt()
-        L = []
-        return L
+    #lossMMD = np.sum(self.S * sum([(exponent * (1./bandwith)).exp() for bandwith in self.bandwiths]))
+    #L=lossMMD.sqrt()
+    L = []
+    return L
 
 def cov_discrepancy(A, B):
     """ Root mean square difference in covariance matrices.

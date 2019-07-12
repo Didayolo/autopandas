@@ -29,7 +29,8 @@ def rank_matrix_to_inverse(X):
     return matrix
 
 def marginal_retrofit(Xartif, Xreal):
-    '''Retrofit the marginal distributions of the features in Xartif to those in Xreal'''
+    ''' Retrofit the marginal distributions of the features in Xartif to those in Xreal.
+    '''
     pa,n = Xartif.shape
     pr,nr = Xreal.shape
     assert(n==nr)

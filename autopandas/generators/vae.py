@@ -36,7 +36,9 @@ class VAE():
     """ Variational Autoencoder.
     """
     def __init__(self, original_dim, intermediate_dim=256, latent_dim=2, epsilon_std=1.0):
-        """ :param original_dim: Input/output size.
+        """ VAE constructor.
+
+            :param original_dim: Input/output size.
             :param intermediate_dim: Dimension of intermediate layers (encoder and decoder).
                                      It can be:
                                      - an integer (one intermediate layer)

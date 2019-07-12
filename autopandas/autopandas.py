@@ -289,6 +289,7 @@ class AutoData(pd.DataFrame):
                          valid=False,
                          valid_size=0.1):
         """ Procedure doing the train/test split and store it into self.indexes.
+
             :param test_size: proportion of examples in test set.
             :param shuffle: whether to shuffle examples or not.
             :param valid: whether to do a train/valid/test split or not (not implemented yet).
@@ -345,6 +346,7 @@ class AutoData(pd.DataFrame):
 
     def imputation(self, method='most', key=None):
         """ Impute missing values.
+
             :param method: None, 'remove', 'most', 'mean', 'median'
             :return: Data with imputed values.
             :rtype: AutoData
@@ -366,6 +368,7 @@ class AutoData(pd.DataFrame):
 
     def normalization(self, method='standard', key=None):
         """ Normalize data.
+
             :param method: 'standard', 'min-max', None
             :return: Normalized data.
             :rtype: AutoData
@@ -387,6 +390,7 @@ class AutoData(pd.DataFrame):
 
     def encoding(self, method='label', key=None):
         """ Encode categorical variables.
+
             :param method: 'none', 'label', 'one-hot', 'rare-one-hot', 'target', 'likelihood', 'count', 'probability'
             :param target: Target column name (target encoding).
             :param coeff: Coefficient defining rare values (rare one-hot encoding).
@@ -409,6 +413,7 @@ class AutoData(pd.DataFrame):
 
     def pca(self, key=None, verbose=False, **kwargs):
         """ Compute PCA.
+
             :param verbose: Display additional information during run
             :param **kwargs: Additional parameters for PCA (see sklearn doc)
             :return: Transformed data
@@ -427,6 +432,7 @@ class AutoData(pd.DataFrame):
 
     def tsne(self, key=None, verbose=False, **kwargs):
         """ Compute T-SNE.
+
             :param verbose: Display additional information during run
             :param **kwargs: Additional parameters for T-SNE (see sklearn doc)
             :return: Transformed data
@@ -436,8 +442,8 @@ class AutoData(pd.DataFrame):
             reduction.tsne(self, key=key, verbose=verbose, **kwargs))
 
     def lda(self, key=None, verbose=False, **kwargs):
-        """
-            Compute Linear Discriminant Analysis.
+        """ Compute Linear Discriminant Analysis.
+
             :param verbose: Display additional information during run
             :param **kwargs: Additional parameters for LDA (see sklearn doc)
             :return: Transformed data
@@ -450,7 +456,8 @@ class AutoData(pd.DataFrame):
 
     def reduction(self, method='pca', key=None, verbose=False, **kwargs):
         """ Dimensionality reduction
-            method: pca, lda, tsne
+
+            :param method: 'pca', 'lda' or 'tsne'
         """
         data = self.get_data(key)
         if method == 'pca':
@@ -500,8 +507,10 @@ class AutoData(pd.DataFrame):
 
     def score(self, model=None, metric=None, method='baseline', fit=True, test=None, verbose=False):
         """ Benchmark, a.k.a. Utility.
+
             Return the metric score of a model trained and tested on data.
             If a test set is defined ('test' parameter), the model is trained on 'data' and tested on 'test'.
+            
             :param model: Model to fit and test on data.
             :param metric: scoring function.
             :param method: 'baseline' or 'auto'. Useful only if model is None.

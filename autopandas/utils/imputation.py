@@ -1,7 +1,8 @@
 # Functions for missing data imputation
 
 def mean(data, column):
-    """ Replace missing values by the mean of the column
+    """ Replace missing values by the mean of the column.
+
         :param data: AutoData data
         :param column: Column to impute
         :return: Imputed data
@@ -11,7 +12,8 @@ def mean(data, column):
     return data
 
 def median(data, column):
-    """ Replace missing values by the median of the column
+    """ Replace missing values by the median of the column.
+
         :param data: AutoData data
         :param column: Column to impute
         :return: Imputed data
@@ -21,7 +23,8 @@ def median(data, column):
     return data
 
 def remove(data, columns):
-    """ Remove missing values
+    """ Simply remove columns containing missing values.
+
         :param data: AutoData data
         :param column: Column to impute
         :return: Imputed data
@@ -31,7 +34,8 @@ def remove(data, columns):
     return data
 
 def most(data, column):
-    """ Replace missing values by the most frequent value of the column
+    """ Replace missing values by the most frequent value of the column.
+
         :param data: AutoData data
         :param column: Column to impute
         :return: Imputed data

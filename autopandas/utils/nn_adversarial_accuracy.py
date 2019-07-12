@@ -11,7 +11,8 @@ import numpy as np
 from tqdm import tqdm
 
 class NearestNeighborMetrics():
-    """ Calculate nearest neighbors and metrics. """
+    """ Calculate nearest neighbors and metrics.
+    """
 
     def __init__(self, tr, te, synths):
         self.data = {'tr': tr, 'te': te}
@@ -23,7 +24,8 @@ class NearestNeighborMetrics():
         self.dists = {}
 
     def nearest_neighbors(self, t, s):
-        """Find nearest neighbors d_ts and d_ss"""
+        """ Find nearest neighbors d_ts and d_ss.
+        """
         # fit to S
         nn_s = NearestNeighbors(1).fit(self.data[s]) #.reshape(-1, 1)
         if t == s:
@@ -35,7 +37,8 @@ class NearestNeighborMetrics():
         return t, s, d
 
     def compute_nn(self):
-        """run all the nearest neighbors calculations"""
+        """ Run all the nearest neighbors calculations.
+        """
         # find all combinations of test, train, and synthetics
         tasks = product(self.data.keys(), repeat=2)
 
@@ -54,25 +57,29 @@ class NearestNeighborMetrics():
                 self.dists[(t, s)] = d
 
     def discrepancy_score(self, t, s):
-        """calculate the NN discrepancy score"""
+        """ Calculate the NN discrepancy score.
+        """
         left = np.mean(self.dists[(t, s)])
         right = np.mean(self.dists[(s, t)])
         return 0.5 * (left + right)
 
     def divergence(self, t, s):
-        """calculate the NN divergence"""
+        """ Calculate the NN divergence.
+        """
         left = np.mean(np.log(self.dists[(t, s)] / self.dists[(t, t)]))
         right = np.mean(np.log(self.dists[(s, t)] / self.dists[(s, s)]))
         return 0.5 * (left + right)
 
     def adversarial_accuracy(self, t, s):
-        """calculate the NN adversarial accuracy"""
+        """ Calculate the NN adversarial accuracy.
+        """
         left = np.mean(self.dists[(t, s)] > self.dists[(t, t)])
         right = np.mean(self.dists[(s, t)] > self.dists[(s, s)])
         return 0.5 * (left + right)
 
     def compute_discrepancy(self):
-        """compute the standard discrepancy scores"""
+        """ Compute the standard discrepancy scores.
+        """
         # only one value
         j_rr = self.discrepancy_score('tr', 'te')
         j_ra = []
@@ -94,7 +101,8 @@ class NearestNeighborMetrics():
         return j_rr, j_ra, j_rat, j_aa
 
     def compute_divergence(self):
-        """compute the standard divergence scores"""
+        """ Compute the standard divergence scores.
+        """
         d_tr_a = []
         d_te_a = []
         for k in self.synth_keys:
@@ -106,7 +114,8 @@ class NearestNeighborMetrics():
         return d_tr, d_te
 
     def compute_adversarial_accuracy(self):
-        """compute the standarad adversarial accuracy scores"""
+        """ Compute the standarad adversarial accuracy scores.
+        """
         a_tr_a = []
         a_te_a = []
         for k in self.synth_keys:

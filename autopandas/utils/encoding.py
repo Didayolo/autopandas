@@ -21,6 +21,7 @@ def none(data, column):
 
 def label(data, column):
     """ Performs label encoding.
+
         Example:
             Color: ['blue', 'green', 'blue', 'pink']
             is encoded by
@@ -36,11 +37,13 @@ def label(data, column):
 
 def one_hot(data, column, rare=False, coeff=0.1):
     """ Performs one-hot encoding.
+
         Example:
             Color: ['black', 'white', 'white']
             is encoded by
             Black: [1, 0, 0]
             White: [0, 1, 1]
+
         :param df: Data
         :param column: Column to encode
         :param rare: If True, rare categories are merged into one
@@ -61,6 +64,7 @@ def one_hot(data, column, rare=False, coeff=0.1):
 
 def likelihood(x, column, feat_type=None, mapping=None, return_param=False):
     """ Performs likelihood encoding.
+
         :param df: Data
         :param column: Column to encode
         :param mapping: Dictionary {category : value}
@@ -103,6 +107,7 @@ def likelihood(x, column, feat_type=None, mapping=None, return_param=False):
 
 def count(x, column, mapping=None, probability=False, return_param=False):
     """ Performs frequency encoding.
+
         Categories are replaced by their number of occurence.
         Soon: possibility of probability instead of count (normalization)
 
@@ -271,9 +276,9 @@ def cat2vec(data, size=6, window=8, verbose=True):
 
 def normalize(l, normalization='probability'):
     """ Return a normalized list
-        Input:
-          normalization: 'probability': between 0 and 1 with a sum equals to 1
-                         'min-max': min become 0 and max become 1
+
+        :param normalization: 'probability': between 0 and 1 with a sum equals to 1 OR
+                              'min-max': min become 0 and max become 1
     """
     if normalization=='probability':
         return [float(i)/sum(l) for i in l]

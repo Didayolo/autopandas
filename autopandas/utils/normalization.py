@@ -2,6 +2,7 @@
 
 def standard(data, column, mean=None, std=None, return_param=False):
     """ Performs standard normalization.
+
         :param data: Data
         :param column: Column to normalize
         :param mean: Mean, computed if not specified
@@ -20,6 +21,7 @@ def standard(data, column, mean=None, std=None, return_param=False):
 
 def min_max(data, column, mini=None, maxi=None, return_param=False):
     """ Performs min-max normalization.
+    
         :param data: Data
         :param column: Column to normalize
         :param mini: Minimum, computed if not specified

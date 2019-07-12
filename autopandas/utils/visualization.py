@@ -7,6 +7,7 @@ def plot(data, key=None, ad=None, max_features=2, save=None, c=None, **kwargs):
     """ Show feature pairplots.
         TODO be able to pass column name ?
         Automatic selection ?
+        
         :param ad: AutoData frame to plot in superposition
         :param save: filename to save fig if not None
         Class coloration only if y is categorical (classification)
