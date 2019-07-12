@@ -14,7 +14,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 import itertools
 #from .nn_adversarial_accuracy import NearestNeighborMetrics
-from .nnaa import nnaa
+#from .nnaa import nnaa
 
 def distance(x, y, axis=None, norm='euclidean'):
     """ Compute the distance between x and y.

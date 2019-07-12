@@ -23,7 +23,7 @@ from .utils import reduction as reduction
 from .utils import visualization as visualization
 from .utils import benchmark as benchmark
 from .utils import metric as metric
-from .utils import nnaa as nnaa
+#from .utils import nnaa as nnaa
 # generators
 from .generators import generators as generators
 
