@@ -22,41 +22,21 @@ from .utils import reduction as reduction
 from .utils import visualization as visualization
 from .utils import benchmark as benchmark
 from .utils import metric as metric
+from .utils import automl as automl
 #from .utils import nnaa as nnaa
 # generators
 from .generators import generators as generators
 
 def read_csv(*args, **kwargs):
     """ Read data from CSV file.
-        Default behaviour is to infer separator.
+        Default behaviour is to infer the separator.
+        It then creates an AutoData object, so the numerical/categorical inference and train/test split are done automatically.
     """
     if ('sep' in kwargs) or ('engine' in kwargs):
         data = pd.read_csv(*args, **kwargs)
     else: # Infer CSV separator
         data = pd.read_csv(*args, **kwargs, sep=None, engine='python')
     return AutoData(data)
-
-def read_automl(input_dir, basename):
-    """ Read files in AutoML format.
-        TODO
-    """
-    pass
-    """
-    feat_name_file = os.path.join(input_dir, basename + '_feat.name')
-    feat_name = pd.read_csv(feat_name_file, header=None).values.ravel() if os.path.exists(feat_name_file) else None
-    label_name_file = os.path.join(input_dir, basename + '_label.name')
-    label_name = pd.read_csv(label_name_file, header=None).values.ravel() if os.path.exists(label_name_file) else None
-    # if exists
-    if os.path.exists(os.path.join(input_dir, basename + '.data')):
-        # read .data and .solution
-        pd.read_csv(filepath, sep=' ', header=None)
-    # create AutoData object
-    data = AutoData(df)
-    # class ?
-    data.set_class()
-    # train/valid/test ?
-    data.indexes['train'] = [0]
-    """
 
 # memo
 # to concat df by columns: join
@@ -72,7 +52,9 @@ def from_train_test(train, test):
     if not isinstance(test, pd.DataFrame):
         test = AutoData(test)
     # Concatenate by rows
+    indexes = train.indexes.copy()
     ad = AutoData.append(train, test)
+    ad.indexes = indexes
     ad.set_indexes('train', range(0, len(train)))
     ad.set_indexes('test', range(len(train), len(ad)))
     return ad
@@ -127,6 +109,11 @@ class AutoData(pd.DataFrame):
     # Init/save info, etc. (AutoML info)
 
     def __init__(self, *args, indexes=None, **kwargs):  # indexes = None
+        """ Create an AutoData object.
+            If needed, automatically do:
+            * numerical/categorical variables inference
+            * train/test split
+        """
         pd.DataFrame.__init__(self, *args, **kwargs)
         # self.info = {} # maybe for later
         # indexes ('X', 'y', 'train', 'categorical', 'y_test', etc.)
@@ -244,7 +231,7 @@ class AutoData(pd.DataFrame):
             raise Exception('No class is defined. Please use set_class method to define one.')
 
     ##################################################################
-    # DESCRIPTIORS
+    # DESCRIPTORS
     def ratio(self, key=None):
         """ Dataset ratio: (dimension / number of examples).
         """
@@ -395,6 +382,7 @@ class AutoData(pd.DataFrame):
                 raise Exception('Unknown normalization method: {}'.format(method))
         if has_split:
             data = from_train_test(train, test)
+        #data.flush_index()
         return data
 
     def encoding(self, method='label', key=None, target=None, split=True):
@@ -407,10 +395,10 @@ class AutoData(pd.DataFrame):
             :param split: If False, do the processing on the whole frame without train/test split.
         """
         data = self.copy()
-        has_split = self.has_split() and split
+        has_split = self.has_split() and split and (method in ['likelihood', 'count', 'target'])
         rows, columns = self.get_index(key)
         # avoid data leakage (apply processing on train and then on test with same parameters)
-        if has_split:
+        if has_split: # can be more memory efficient
             train = data.get_data('train')
             test = data.get_data('test')
         # process
@@ -598,6 +586,14 @@ class AutoData(pd.DataFrame):
             return metric.discriminant(self, data, **kwargs)
         else:
             raise Exception('Unknown distance metric: {}'.format(method))
+
+    def generate(self, method=None):
+        """ Fit a generator and generate data with default parameters.
+            TODO
+
+            :param method: ANM, GAN, VAE, Copula, etc.
+        """
+        pass
 
     #################### ALIAS #######################
     # How to automate this ?
