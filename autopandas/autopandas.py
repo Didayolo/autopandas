@@ -341,7 +341,7 @@ class AutoData(pd.DataFrame):
         return ('y' in self.indexes.keys()) and (self.indexes['y'] != [])
 
     def has_split(self):
-        """ Return True if 'train' and 'test' are defined and corresponds to one column (or more)
+        """ Return True if 'train' and 'test' are defined (or more).
         """
         train = ('train' in self.indexes.keys()) and (self.indexes['train'] != [])
         test = ('test' in self.indexes.keys()) and (self.indexes['test'] != [])
@@ -369,38 +369,58 @@ class AutoData(pd.DataFrame):
                 raise Exception('Unknown imputation method: {}'.format(method))
         return data
 
-    def normalization(self, method='standard', key=None):
+    def normalization(self, method='standard', key=None, split=True):
         """ Normalize data.
 
             :param method: 'standard', 'min-max', None
+            :param split: If False, do the processing on the whole frame without train/test split.
             :return: Normalized data.
             :rtype: AutoData
         """
         data = self.copy()
+        has_split = self.has_split() and split
         rows, columns = self.get_index(key)
-
+        # avoid data leakage (apply processing on train and then on test with same parameters)
+        if has_split:
+            train = data.get_data('train')
+            test = data.get_data('test')
+        # process
         for column in columns:
-            if method == 'standard':
-                data = normalization.standard(data, column)
-                # TODO:
-                #train, (mean, std) = normalization.standard(train, column, return_param=True)
-                #test = normalization.standard(test, column, mean, std)
+            if method in ['standard', 'std']:
+                if has_split:
+                    train, (mean, std) = normalization.standard(train, column, return_param=True)
+                    test = normalization.standard(test, column, mean=mean, std=std)
+                else:
+                    data = normalization.standard(data, column)
             elif method in ['min-max', 'minmax', 'min_max']:
-                data = normalization.min_max(data, column)
+                if has_split:
+                    train, (mini, maxi) = normalization.min_max(train, column, return_param=True)
+                    test = normalization.min_max(test, column, mini=mini, maxi=maxi)
+                else:
+                    data = normalization.min_max(data, column)
             else:
                 raise Exception('Unknown normalization method: {}'.format(method))
+        if has_split:
+            data = from_train_test(train, test)
         return data
 
-    def encoding(self, method='label', key=None, target=None):
+    def encoding(self, method='label', key=None, target=None, split=True):
         """ Encode categorical variables.
 
             :param method: 'none', 'label', 'one-hot', 'rare-one-hot', 'target', 'likelihood', 'count', 'probability'
             :param target: Target column name (target encoding).
             :param coeff: Coefficient defining rare values (rare one-hot encoding).
                           A rare category occurs less than the (average number of occurrence * coefficient).
+            :param split: If False, do the processing on the whole frame without train/test split.
         """
         data = self.copy()
+        has_split = self.has_split() and split
         rows, columns = self.get_index(key)
+        # avoid data leakage (apply processing on train and then on test with same parameters)
+        if has_split:
+            train = data.get_data('train')
+            test = data.get_data('test')
+        # process
         for column in columns:
             if method in ['none', 'drop'] or method is None:
                 data = encoding.none(data, column)
@@ -409,9 +429,17 @@ class AutoData(pd.DataFrame):
             elif method in ['onehot', 'one_hot', 'one-hot']:
                 data = encoding.one_hot(data, column) # TODO: fix class behaviour
             elif method == 'likelihood':
-                data = encoding.likelihood(data, column)
+                if has_split:
+                    train, mapping = encoding.likelihood(train, column, return_param=True)
+                    test = encoding.likelihood(test, column, mapping=mapping)
+                else:
+                    data = encoding.likelihood(data, column)
             elif method == 'count':
-                data = encoding.count(data, column)
+                if has_split:
+                    train, mapping = encoding.count(train, column, return_param=True)
+                    test = encoding.count(test, column, mapping=mapping)
+                else:
+                    data = encoding.count(data, column)
             elif method == 'target':
                 if target is None:
                     if not self.has_class():
@@ -421,9 +449,15 @@ class AutoData(pd.DataFrame):
                         num_classes = len(self.indexes['y']) # TODO: multiclass?
                         if num_classes > 1:
                             print('WARNING: only 1 over {} classes will be used for the target encoding.'.format(num_classes))
-                data = encoding.target(data, column, target)
+                if has_split:
+                    train, mapping = encoding.target(train, column, target, return_param=True)
+                    test = encoding.target(test, column, target, mapping=mapping)
+                else:
+                    data = encoding.target(data, column, target)
             else:
                 raise Exception('Unknow encoding method: {}'.format(method))
+        if has_split:
+            data = from_train_test(train, test)
         if encoding != 'label':
             data.flush_index() # update columns indexes for encoding that change number of columns
         return data
