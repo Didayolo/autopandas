@@ -21,7 +21,9 @@ def plot(data, key=None, ad=None, c=None, save=None, **kwargs):
     if ad is None: # Only one dataframe to plot
         if data.has_class(): # use class for coloration
             c = list(data.get_data('y'))
-        if feat_num == 2: # 2D plot
+        if feat_num == 1: # Dist plot
+            pairplot(data, save=save, **kwargs)
+        elif feat_num == 2: # 2D plot
             title = None
             if isinstance(c, pd.DataFrame): # c has to be a 1D sequence
                 if len(c.columns) > 1:
@@ -35,15 +37,18 @@ def plot(data, key=None, ad=None, c=None, save=None, **kwargs):
         else: # Not 2D plot
             heatmap(data, save=save, **kwargs)
     else: # 2 dataframes to plot
-        if feat_num == 2 and ad.shape[1] == 2: # if 2 features, overlay plots
+        if feat_num == 1 and ad.shape[1] == 1: # 1D distributions
+            plt.scatter(data, ad) # plot together, or overlay distplots
+            print('WARNING: TODO legend and all.')
+        elif feat_num == 2 and ad.shape[1] == 2: # if 2 features, overlay plots
             x1, y1, x2, y2 = data.iloc[:,0], data.iloc[:,1], ad.iloc[:,0], ad.iloc[:,1]
             plt.plot(x1, y1, 'o', alpha=.9, color='blue') #, label=label1) # lw=2, s=1, color='blue',
             plt.plot(x2, y2, 'x', alpha=.8, color='orange') #, marker='x') #, label=label2) # lw=2, s=1
             plt.axis([min(min(x1), min(x2)), max(max(x1), max(x2)), min(min(y1), min(y2)), max(max(y1), max(y2))])
         else: # Not 2D plots
-            print('Overlay plot is only for 2 dimensional data.')
+            print('Overlay plot is only for 1D or 2D data.')
             heatmap(data, save=save, **kwargs)
-            plot(ad, key=key, save='bis_'+save, palette='husl')
+            plot(ad, save='bis_'+save, palette='husl')
     if save is not None:
         plt.savefig(save)
     plt.show()

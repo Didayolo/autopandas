@@ -92,9 +92,12 @@ def from_X_y(X, y):
     if not isinstance(y, pd.DataFrame):
         y = AutoData(y)
     # Concatenate by columns
+    X.columns = X.columns.astype(str)
+    y.columns = y.columns.astype(str)
     ad = AutoData.join(X, y, lsuffix='_X', rsuffix='_y')
-    X_index = [str(x)+'_X' for x in X.columns if x in y.columns] + [x for x in X.columns if x not in y.columns]
-    y_index = [str(y)+'_y' for y in y.columns if y in X.columns] + [y for y in y.columns if y not in X.columns]
+    # Update indexes
+    X_index = [x+'_X' for x in X.columns if x in y.columns] + [x for x in X.columns if x not in y.columns]
+    y_index = [y+'_y' for y in y.columns if y in X.columns] + [y for y in y.columns if y not in X.columns]
     ad.set_indexes('X', X_index)
     ad.set_indexes('y', y_index)
     return ad
