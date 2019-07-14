@@ -1,7 +1,7 @@
 pandas
 cython
 numpy
-matplotlib
+matplotlib==3.1.1
 seaborn
 sklearn
 auto-sklearn

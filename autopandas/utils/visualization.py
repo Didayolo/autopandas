@@ -2,64 +2,99 @@
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pandas as pd
 
-def plot(data, key=None, ad=None, max_features=2, save=None, c=None, **kwargs):
-    """ Show feature pairplots.
-        TODO be able to pass column name ?
-        Automatic selection ?
+def plot(data, key=None, ad=None, c=None, save=None, **kwargs):
+    """ Plot AutoData frame.
+        Show 2D scatter plot or heatmap.
 
+        :param key: Key for subset selection (e.g. 'X_train' or 'categorical')
         :param ad: AutoData frame to plot in superposition
-        :param save: filename to save fig if not None
-        Class coloration only if y is categorical (classification)
+        :param c: Sequence of color specifications of length n (e.g. data.get_data('y'))
+        :param save: Path/filename to save figure (if not None)
     """
     data = data.get_data(key)
     feat_num = data.shape[1]
-    if feat_num <= max_features:
-        sns.set(style="ticks")
-        if key is not None:
-            print('{} set plot'.format(key))
-        # if data.has_class
-            # hue=y
-            # TODO class coloration
-        if feat_num == 2 and c is not None:
-            # TEST
-            # TODO
-            plt.scatter(data[0], data[1], c=c, alpha=.4, s=3**2, cmap='viridis')
+    sns.set(style="ticks")
+    if key is not None:
+        print('{} set plot'.format(key))
+    if ad is None: # Only one dataframe to plot
+        if data.has_class(): # use class for coloration
+            c = list(data.get_data('y'))
+        if feat_num == 2: # 2D plot
+            title = None
+            if isinstance(c, pd.DataFrame): # c has to be a 1D sequence
+                if len(c.columns) > 1:
+                    print('WARNING: only the first column will be used for coloration.')
+                title = c.columns[0]
+                c = list(c[title])
+            fig, ax = plt.subplots()
+            scatter = ax.scatter(data[0], data[1], c=c, alpha=.4, s=3**2, cmap='viridis')
+            legend = ax.legend(*scatter.legend_elements(), loc='center left', bbox_to_anchor=(1, 0.5), title=title)
             plt.show()
-        if ad is None:
-            sns.pairplot(data, **kwargs)
-        else: # if two dataframes to plot
-            if feat_num == 2 and ad.shape[1] == 2: # if 2 features, overlay plots
-                x1, y1, x2, y2 = data.iloc[:,0], data.iloc[:,1], ad.iloc[:,0], ad.iloc[:,1]
-                plt.plot(x1, y1, 'o', alpha=.9, color='blue') #, label=label1) # lw=2, s=1, color='blue',
-                plt.plot(x2, y2, 'x', alpha=.8, color='orange') #, marker='x') #, label=label2) # lw=2, s=1
-                plt.axis([min(min(x1), min(x2)), max(max(x1), max(x2)), min(min(y1), min(y2)), max(max(y1), max(y2))])
-            else:
-                print('Overlay plot is only for 2 dimensional data.')
-                sns.pairplot(data, **kwargs)
-                plot(ad, key=key, max_features=max_features, palette='husl')
+        else: # Not 2D plot
+            heatmap(data, save=save, **kwargs)
+    else: # 2 dataframes to plot
+        if feat_num == 2 and ad.shape[1] == 2: # if 2 features, overlay plots
+            x1, y1, x2, y2 = data.iloc[:,0], data.iloc[:,1], ad.iloc[:,0], ad.iloc[:,1]
+            plt.plot(x1, y1, 'o', alpha=.9, color='blue') #, label=label1) # lw=2, s=1, color='blue',
+            plt.plot(x2, y2, 'x', alpha=.8, color='orange') #, marker='x') #, label=label2) # lw=2, s=1
+            plt.axis([min(min(x1), min(x2)), max(max(x1), max(x2)), min(min(y1), min(y2)), max(max(y1), max(y2))])
+        else: # Not 2D plots
+            print('Overlay plot is only for 2 dimensional data.')
+            heatmap(data, save=save, **kwargs)
+            plot(ad, key=key, save='bis_'+save, palette='husl')
+    if save is not None:
+        plt.savefig(save)
+    plt.show()
+
+def pairplot(data, key=None, max_features=12, force=False, save=None, **kwargs):
+    """ Plot pairwise relationships between features.
+
+        :param key: Key for subset selection (e.g. 'X_train' or 'categorical')
+        :param max_features: Max number of features to pairplot.
+        :param force: If True, plot the graphs even if the number of features is grater than max_features.
+        :param save: Path/filename to save figure (if not None)
+    """
+    data = data.get_data(key)
+    feat_num = data.shape[1]
+    if (feat_num <= max_features) or force==True:
+        f = sns.pairplot(data, **kwargs)
         if save is not None:
-            plt.savefig(save)
-        plt.show()
+            f.savefig(save)
     else:
-        #plt.matshow(data) # TODO
-        sns.heatmap(data) # TODO
-        #print('Too much features to pairplot. Number of features: {}, max features to plot set at: {}'.format(feat_num, max_features))
+        print('Max number of features to pairplot is set to {} and your data has {} features.\nIncrease max_features or set force to True to proceed.'.format(max_features, feat_num))
 
-def heatmap(data, **kwargs):
-    sns.heatmap(data, **kwargs)
+def heatmap(data, key=None, save=None, **kwargs):
+    """ Plot data heatmap.
 
-def correlation(data, **kwargs):
+        :param key: Key for subset selection (e.g. 'X_train' or 'categorical')
+        :param save: Path/filename to save figure (if not None)
+    """
+    data = data.get_data(key)
+    f = sns.heatmap(data, **kwargs)
+    if save is not None:
+        f.savefig(save)
+
+def correlation(data, key=None, save=None, **kwargs):
+    """ Plot correlation matrix.
+
+        :param key: Key for subset selection (e.g. 'X_train' or 'categorical')
+        :param save: Path/filename to save figure (if not None)
+    """
+    data = data.get_data(key)
     corr = data.corr()
-    sns.heatmap(corr, **kwargs)
+    f = sns.heatmap(corr, **kwargs)
+    if save is not None:
+        f.savefig(save)
 
 def compare_marginals(data1, data2, key=None, method='all', target=None, save=None, name1='dataset 1', name2='dataset2'):
     """ Plot the metric for each variable from ds1 and ds2.
         Mean, standard deviation or correlation with target.
 
         :param method: 'mean', 'std', 'corr', 'all'
-        :param target: column name for the target for correlation method
-        :param save: Path to save the figure (doesn't save if 'save' is None)
+        :param target: Column name for the target for correlation method
+        :param save: Path to save the figure (doesn't save if 'save' is None).
     """
     has_class = data1.has_class() and data2.has_class()
     if (method == 'all' or method == 'corr') and (target is None and not has_class):

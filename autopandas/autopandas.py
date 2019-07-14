@@ -441,6 +441,7 @@ class AutoData(pd.DataFrame):
         # variable are now only numerical
         data.indexes['categorical'] = []
         data.indexes['numerical'] = list(data)
+        data.flush_index() # update columns index after dimensionality change
         return data
 
     def tsne(self, key=None, verbose=False, **kwargs):
@@ -451,7 +452,9 @@ class AutoData(pd.DataFrame):
             :return: Transformed data
             :rtype: AutoData
         """
-        return AutoData(reduction.tsne(self, key=key, verbose=verbose, **kwargs))
+        data = AutoData(reduction.tsne(self, key=key, verbose=verbose, **kwargs))
+        data.flush_index()
+        return data
 
     def lda(self, key=None, verbose=False, **kwargs):
         """ Compute Linear Discriminant Analysis.
@@ -463,7 +466,9 @@ class AutoData(pd.DataFrame):
         """
         if 'y' not in self.indexes:
             raise Exception('No class is defined. Please use set_class method to define one.')
-        return AutoData(reduction.lda(self, key=key, verbose=verbose, **kwargs))
+        data = AutoData(reduction.lda(self, key=key, verbose=verbose, **kwargs))
+        data.flush_index()
+        return data
 
     def reduction(self, method='pca', key=None, verbose=False, **kwargs):
         """ Dimensionality reduction
@@ -481,7 +486,6 @@ class AutoData(pd.DataFrame):
             data = AutoData(reduction.feature_hashing(data, key=key, **kwargs))
         else:
             raise Exception('Unknown dimensionality reduction method: {}'.format(method))
-        data.flush_index() # update columns index after dimensionality change
         return data
 
     ## 3. ###################### VISUALIZATION #######################
@@ -489,18 +493,30 @@ class AutoData(pd.DataFrame):
     # TODO
     # Class coloration on plots!
 
-    def plot(self, key=None, ad=None, max_features=12, save=None, **kwargs):
-        """ Show feature pairplots.
-            TODO be able to pass column name ?
-            Automatic selection ?
+    def plot(self, key=None, ad=None, c=None, save=None, **kwargs):
+        """ Plot AutoData frame.
+            Show 2D scatter plot or heatmap.
+
+            :param key: Key for subset selection (e.g. 'X_train' or 'categorical')
+            :param ad: AutoData frame to plot in superposition
+            :param c: Sequence of color specifications of length n (e.g. data.get_data('y'))
+            :param save: Path/filename to save figure (if not None)
         """
-        visualization.plot(
-            self,
-            key=key,
-            ad=ad,
-            max_features=max_features,
-            save=save,
-            **kwargs)
+        visualization.plot(self, key=key,
+                                 ad=ad, c=c,
+                                 save=save, **kwargs)
+
+    def pairplot(self, key=None, max_features=12, force=False, save=None, **kwargs):
+        """ Plot pairwise relationships between features.
+
+            :param key: Key for subset selection (e.g. 'X_train' or 'categorical')
+            :param max_features: Max number of features to pairplot.
+            :param force: If True, plot the graphs even if the number of features is grater than max_features.
+            :param save: Path/filename to save figure (if not None)
+        """
+        visualization.pairplot(self, key=key,
+                                     max_features=max_features,
+                                     force=force, save=save, **kwargs)
 
     def plot_pca(self, key):
         self.pca(key, n_components=2).plot()
