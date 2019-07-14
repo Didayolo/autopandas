@@ -5,6 +5,7 @@ from sklearn.manifold import TSNE
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.feature_extraction import FeatureHasher
 import pandas as pd
+import autopandas
 
 def pca(data, key=None, verbose=False, **kwargs):
     """ Compute PCA.

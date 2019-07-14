@@ -93,8 +93,10 @@ def from_X_y(X, y):
         y = AutoData(y)
     # Concatenate by columns
     ad = AutoData.join(X, y, lsuffix='_X', rsuffix='_y')
-    ad.set_indexes('X', X.columns)
-    ad.set_indexes('y', y.columns)
+    X_index = [str(x)+'_X' for x in X.columns if x in y.columns] + [x for x in X.columns if x not in y.columns]
+    y_index = [str(y)+'_y' for y in y.columns if y in X.columns] + [y for y in y.columns if y not in X.columns]
+    ad.set_indexes('X', X_index)
+    ad.set_indexes('y', y_index)
     return ad
 
 def plot(ad1, ad2, **kwargs):
@@ -185,7 +187,7 @@ class AutoData(pd.DataFrame):
             raise Exception('Unknown key.')
         return rows, columns
 
-    def flush_index(self, key=None):
+    def flush_index(self, key=None, compute_types=True):
         """ For now: delete non-existing columns from indexes.
             #Delete useless indexes for a specific set.
             #For example:
@@ -195,20 +197,19 @@ class AutoData(pd.DataFrame):
         """
         # Rows
         # Delete from indexes non-existing rows
-
         # Columns
         for k in ['categorical', 'numerical', 'X', 'y']:
             if k in self.indexes:
                 self.indexes[k] = [x for x in self.indexes[k] if x in self.columns]
-        self.get_types()
+        if compute_types:
+            self.get_types()
 
     def get_data(self, key=None):
         """ Get data.
             :param key: wanted subset of data ('train', 'categorical_header', 'y', etc.)
         """
-        data = self.loc[self.get_index(key)]
-        data.indexes = self.indexes
-        #data.flush_index(key)
+        data = self.loc[self.get_index(key)].copy()
+        data.flush_index(compute_types=False) # save time by not re-computing variable types
         return data
 
     def get_types(self):
@@ -351,7 +352,7 @@ class AutoData(pd.DataFrame):
             :rtype: AutoData
         """
         data = self.copy()
-        rows, columns = self.get_index(key)
+        rows, columns = self.get_index(key) # get_index instead of get_data to modify wanted columns and keep others
         for column in columns:
             if method == 'remove':
                 data = imputation.remove(data, column)

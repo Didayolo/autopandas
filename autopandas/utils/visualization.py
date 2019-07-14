@@ -29,7 +29,7 @@ def plot(data, key=None, ad=None, c=None, save=None, **kwargs):
                 title = c.columns[0]
                 c = list(c[title])
             fig, ax = plt.subplots()
-            scatter = ax.scatter(data[0], data[1], c=c, alpha=.4, s=3**2, cmap='viridis')
+            scatter = ax.scatter(data[data.columns[0]], data[data.columns[1]], c=c, alpha=.4, s=3**2, cmap='viridis')
             legend = ax.legend(*scatter.legend_elements(), loc='center left', bbox_to_anchor=(1, 0.5), title=title)
             plt.show()
         else: # Not 2D plot
