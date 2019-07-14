@@ -1,9 +1,10 @@
-# Copula generator: TODO
+# Copula generator
 
 from scipy.stats import gaussian_kde, norm
 from sklearn.preprocessing import LabelEncoder
 from sklearn.neighbors import KernelDensity
 import numpy as np
+import autopandas
 
 def vector_to_rank(x):
     sort = np.sort(x)
@@ -57,14 +58,44 @@ def marginal_retrofit(Xartif, Xreal):
         Xretro[:,i] = Xa
     return Xretro
 
-def copula_generate(X):
-    print('X marginals to uniforms...')
+def copula_generate(X, generator=None, n=None):
+    """ Generate using copula trick.
+
+        :param generator: Model to fit and sample from.
+        :param n: Number of examples to generate. By default it is the number of observations in X.
+    """
+    indexes = X.indexes
+    columns = X.columns
+    if generator is None:
+        generator = KernelDensity()
+    if n is None:
+        n = X.shape[0]
+    # X marginals to uniforms
     X = matrix_to_rank(X)
-    print('X uniforms to inverse gaussian cdf...')
+    # X uniforms to inverse gaussian CDF
     X = rank_matrix_to_inverse(X)
-    print('Gaussian Kernel Density Estimation...')
-    kernel = KernelDensity().fit(X)
-    print('Generating artificial data \n Sampling from KDE distribution...')
-    X_artif = kernel.sample(X.shape[0])
-    print('Marginal retrofitting...')
-    return marginal_retrofit(X_artif, X)
+    # Fit generator
+    generator.fit(X)
+    # Generating artificial data \n Sampling from generator
+    X_artif = generator.sample(n)
+    # Marginal retrofitting
+    result = autopandas.AutoData(marginal_retrofit(X_artif, X))
+    # Restore data frame index
+    result.indexes = indexes
+    result.columns = columns
+    return result
+
+class Copula():
+    """ Copula generator.
+    """
+    def __init__(self):
+        self.data = None
+
+    def fit(self, data):
+        self.data = copula_generate(data)
+
+    def sample(self, n=1, replace=False):
+        if self.data is None:
+            raise Exception('You firstly need to train the copula generator before sampling. Please use fit method.')
+        else:
+            return self.data.sample(n, replace=replace)
