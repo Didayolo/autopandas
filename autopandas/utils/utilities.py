@@ -636,7 +636,6 @@ def chi_square(col1, col2):
     """
     return chi2_contingency(np.array([col1, col2]))
 
-
 def kolmogorov_smirnov(col1, col2):
     """ Performs Kolmogorov-Smirnov test on two DataFrame columns
 

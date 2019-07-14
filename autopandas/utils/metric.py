@@ -16,16 +16,21 @@ import itertools
 #from .nn_adversarial_accuracy import NearestNeighborMetrics
 #from .nnaa import nnaa
 
-def distance(x, y, axis=None, norm='euclidean'):
-    """ Compute the distance between x and y.
+# Between Points (1D)
+#####################
+def distance(x, y, axis=None, norm='euclidean', method=None):
+    """ Compute the distance between x and y (data points).
 
         :param x: Array-like, first point
         :param y: Array-like, second point
         :param axis: Axis of x along which to compute the vector norms.
         :param norm: 'l0', 'manhattan', 'euclidean', 'minimum' or 'maximum'
+        :param method: Alias for norm parameter.
         :return: Distance value
         :rtype: float
     """
+    if method is not None: # Alias
+        norm = method
     # if x and y are single values
     if not isinstance(x, (list, np.ndarray)):
         z = [x - y]
@@ -44,6 +49,12 @@ def distance(x, y, axis=None, norm='euclidean'):
     else:
         raise ValueError('Unknwon norm: {}.'.format(norm))
 
+# Between Columns (1D)
+######################
+# Still in utilities.py
+
+# Between Distributions (2D)
+############################
 #def adversarial_accuracy(train, test, synthetics):
 #    """ Compute nearest neighbors adversarial accuracy metric
 #    """
@@ -51,14 +62,6 @@ def distance(x, y, axis=None, norm='euclidean'):
 #    nnm.compute_nn()
 #    adversarial = nnm.compute_adversarial_accuracy()
 #    return adversarial
-
-#def tmp_aa(data1, data2):
-#    """ New implementation of AA metric
-#    """
-#    # compute all distances
-#    # ...
-#    # 2 times quicker than naive 1NN leave-one-out
-#    pass
 
 def distance_correlation(X, Y):
     """ Compute the distance correlation function.
@@ -92,7 +95,7 @@ def distance_correlation(X, Y):
     return dcor
 
 def relief_divergence(X1, X2):
-    """ Divergence based on ( dist_to_nearest_miss - dist_to_nearest_hit )
+    """ Divergence based on (dist_to_nearest_miss - dist_to_nearest_hit)
     """
     p1, n = X1.shape
     p2, nn = X2.shape

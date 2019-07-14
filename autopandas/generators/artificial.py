@@ -12,8 +12,9 @@ class Artificial():
     """
     def __init__(self, method='moons', n=100):
         """ Initalize the artificial data generator.
-        
+
             :param method: 'moons', 'blobs' or 'circles'.
+            :param n: Number of artificial points to create.
         """
         if method == 'moons':
             X, y = make_moons(n_samples=n, noise=0.1)

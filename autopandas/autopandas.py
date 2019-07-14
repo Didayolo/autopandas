@@ -44,22 +44,16 @@ def read_automl(input_dir, basename):
     """
     feat_name_file = os.path.join(input_dir, basename + '_feat.name')
     feat_name = pd.read_csv(feat_name_file, header=None).values.ravel() if os.path.exists(feat_name_file) else None
-
     label_name_file = os.path.join(input_dir, basename + '_label.name')
     label_name = pd.read_csv(label_name_file, header=None).values.ravel() if os.path.exists(label_name_file) else None
-
     # if exists
     if os.path.exists(os.path.join(input_dir, basename + '.data')):
-
         # read .data and .solution
         pd.read_csv(filepath, sep=' ', header=None)
-
     # create AutoData object
     data = AutoData(df)
-
     # class ?
     data.set_class()
-
     # train/valid/test ?
     data.indexes['train'] = [0]
     """
@@ -165,6 +159,9 @@ class AutoData(pd.DataFrame):
             super(AutoData, self).to_csv(*args, **kwargs, index=False)
 
     def to_automl(self):
+        """ Write files in AutoML format.
+            TODO
+        """
         pass
 
     def set_indexes(self, key, value):
@@ -191,7 +188,8 @@ class AutoData(pd.DataFrame):
         return rows, columns
 
     def flush_index(self, key=None, compute_types=True):
-        """ For now: delete non-existing columns from indexes.
+        """ Delete non-existing columns from indexes.
+
             #Delete useless indexes for a specific set.
             #For example:
             #  key='X_train'
@@ -233,7 +231,8 @@ class AutoData(pd.DataFrame):
         self.indexes['numerical'] = numerical_index
 
     def get_task(self):
-        """ TODO: multiclass?
+        """ Return 'regression' or 'classification' regarding the target type.
+            TODO: multiclass?
         """
         if self.has_class():
             for c in self.indexes['y']:
@@ -244,21 +243,15 @@ class AutoData(pd.DataFrame):
         else:
             raise Exception('No class is defined. Please use set_class method to define one.')
 
-    def merge(self, data):
-        """ Same indexes but data is a modified part of self.
-            Useless?
-        """
-        pass
-
     ##################################################################
     # DESCRIPTIORS
     def ratio(self, key=None):
-        """ Dataset ratio: dimension / number of examples
+        """ Dataset ratio: (dimension / number of examples).
         """
         return len(self.columns) / len(self.get_data(key))
 
     def symbolic_ratio(self):
-        """ Ratio of symbolic attributes
+        """ Ratio of symbolic attributes.
         """
         return len(self.get_data('numerical').columns) / len(self.columns)
 
@@ -269,7 +262,7 @@ class AutoData(pd.DataFrame):
             raise Exception('No class is defined. Please use set_class method to define one.')
 
     def missing_ratio(self):
-        """ Ratio of missing values
+        """ Ratio of missing values.
         """
         return (self.isnull().sum() / len(self)).mean()
 
@@ -591,10 +584,13 @@ class AutoData(pd.DataFrame):
     # Distribution comparator
     def distance(self, data, method=None, **kwargs):
         """ Distance between two AutoData frames.
-            There is a lot of methods to add (cf. utilities.py and metric.py)
+            TODO: There are methods to add (cf. utilities.py and metric.py)
             Usage example: ad1.distance(ad2, method='privacy')
+
+            :param data: Second distribution to compare with
+            :param method: 'none' (nn_discrepancy), 'discriminant'
         """
-        if method is None:
+        if (method is None) or method in ['None', 'none']:
             return metric.nn_discrepancy(self, data)
         #elif method == 'adversarial_accuracy':
         #    return metric.adversarial_accuracy(self.get_data('train'), self.get_data('test'), data)
