@@ -70,7 +70,8 @@ def lda(data, key=None, verbose=False, **kwargs):
     X = data.get_data('X').get_data(key)
     y = data.get_data('y').get_data(key)
     if y.shape[1] > 1:
-        raise Exception("LDA can't handle multi-output class. Use set_class method to define another target before calling lda.")
+        print("WARNING: LDA can't handle multi-output class. Only the first column will be used.\nUse set_class method to define another target before calling lda.")
+        y = y[y.columns[0]]
     X = lda.fit_transform(X, y)
     return X
 

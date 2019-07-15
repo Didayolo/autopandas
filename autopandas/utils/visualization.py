@@ -3,6 +3,7 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+import numpy as np
 
 def plot(data, key=None, ad=None, c=None, save=None, **kwargs):
     """ Plot AutoData frame.
@@ -19,11 +20,11 @@ def plot(data, key=None, ad=None, c=None, save=None, **kwargs):
     if key is not None:
         print('{} set plot'.format(key))
     if ad is None: # Only one dataframe to plot
-        if data.has_class(): # use class for coloration
-            c = list(data.get_data('y'))
         if feat_num == 1: # Dist plot
             pairplot(data, save=save, **kwargs)
         elif feat_num == 2: # 2D plot
+            if data.has_class() and c is None: # use class for coloration
+                c = data.get_data('y')
             title = None
             if isinstance(c, pd.DataFrame): # c has to be a 1D sequence
                 if len(c.columns) > 1:
