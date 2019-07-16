@@ -4,6 +4,14 @@ autopandas.utils package
 Submodules
 ----------
 
+autopandas.utils.automl module
+------------------------------
+
+.. automodule:: autopandas.utils.automl
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 autopandas.utils.benchmark module
 ---------------------------------
 
@@ -36,22 +44,6 @@ autopandas.utils.metric module
     :undoc-members:
     :show-inheritance:
 
-autopandas.utils.nn\_adversarial\_accuracy module
--------------------------------------------------
-
-.. automodule:: autopandas.utils.nn_adversarial_accuracy
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-autopandas.utils.nnaa module
-----------------------------
-
-.. automodule:: autopandas.utils.nnaa
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 autopandas.utils.normalization module
 -------------------------------------
 
@@ -64,6 +56,14 @@ autopandas.utils.reduction module
 ---------------------------------
 
 .. automodule:: autopandas.utils.reduction
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+autopandas.utils.sdv module
+---------------------------
+
+.. automodule:: autopandas.utils.sdv
     :members:
     :undoc-members:
     :show-inheritance:

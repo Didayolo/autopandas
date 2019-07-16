@@ -18,8 +18,8 @@ import itertools
 
 # Between Points/Columns (1D)
 #############################
-# Still in utilities.py
-# Find distances that works well with binary/categorical data
+# A lot of functions are still in utilities.py (not imported module)
+# TODO: Find distances that works well with binary/categorical data
 
 def distance(x, y, axis=None, norm='euclidean', method=None):
     """ Compute the distance between x and y (data points).
@@ -154,22 +154,60 @@ def discriminant(data1, data2, model=None, metric=None, name1='Dataset 1', name2
         print('Metric: {}'.format(metric))
     return metric(y_test, model.predict(X_test))
 
-'''
-# adversarial_accuracy
-def nnaa(data1, data2, distance_func=None):
-    """ Compute nearest neighbors adversarial accuracy
-        Formula
-        Can be seen as the binary classification score of a 1NN trying to tell if a point is from data1 or data2, in a leave one out setting.
+# TODO
+
+def distance_matrix(data1, data2, distance_func=None):
+    """ Compute matrix with distances between each points (m_ij is distance between i and j).
+        TODO: parallelization.
+
+        :param data1: Distribution
+        :param data2: Distribution
+        :param distance_func: Distance metric function to use to compare data points. Euclidean distance by default.
     """
-    data1, data2 = np.array(data1), np.array(data2)
+    # distance metric between data points
     if distance_func is None:
         distance_func = distance
-    len1, len2 = len(data1), len(data2)
+    len1, len2 = len(data1), len(data2) # handle len1 != len2 case?
+
     distance_matrix = np.empty((len1, len2))
+    # compute the distances
     for i in range(len1):
         for j in range(len2):
             distance_matrix[i, j] = distance_func(data1[i], data2[j])
-    HOT = distance_matrix.min(axis=0), distance_matrix.min(axis=1)
-    # besoin de dist(d1, d1) et dist(d2, d2)
     return distance_matrix
-'''
+
+def nnaa(data_s, data_t, distance_func=None, detailed_results=False):
+    """ Compute nearest neighbors adversarial accuracy between data_s and data_t.
+        This is the proportion of points in data_s for which the nearest neighbor is in data_s (and not in data_t).
+        It can also be seen as the binary classification score of a 1NN trying to tell if a point is from data1 or data2, in a leave one out setting.
+        If data_s and data_t follow the same distribution, the score should be near 0.5:
+        * nnaa > 0.5 -> underfitting
+        * nnaa ~ 0.5 -> cool
+        * nnaa < 0.5 -> overfitting
+
+        From "Privacy Preserving Synthetic Health Data" by Andrew Yale et al.
+
+        :param data_s: 2D distribution (s for "source").
+        :param data_t: 2D distribution (t for "target").
+        :param distance_func: Distance metric function to use to compare data points. Euclidean distance by default.
+        :param detailed_results: If True, return score but also score for TS and ST (the 2 components of the score).
+    """
+    data_s, data_t = np.array(data_s), np.array(data_t)
+    # matrixes with distances between each points (m_ij is distance between i and j)
+    distances_st = distance_matrix(data_s, data_t, distance_func=distance_func) # distances between data_s and data_t
+    distances_ss = distance_matrix(data_s, data_s, distance_func=distance_func)
+    distances_tt = distance_matrix(data_t, data_t, distance_func=distance_func)
+    # fill the diagonal to avoid considering the points themselves as their nearest neighbors
+    np.fill_diagonal(distances_ss, np.inf)
+    np.fill_diagonal(distances_tt, np.inf)
+    # distance to nearest neighbors
+    min_st, min_ts = distances_st.min(axis=0), distances_st.min(axis=1)
+    min_ss = distances_ss.min(axis=0)
+    min_tt = distances_tt.min(axis=0)
+    nnaa_st = np.sum(min_st > min_ss) / len(data_s) # proportion of nearest neihbors of s in s
+    nnaa_ts = np.sum(min_ts > min_tt) / len(data_t)
+    score = (nnaa_st + nnaa_ts) / 2
+    if detailed_results:
+        return score, nnaa_st, nnaa_ts
+    else:
+        return score

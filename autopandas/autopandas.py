@@ -589,8 +589,8 @@ class AutoData(pd.DataFrame):
         """
         if (method is None) or method in ['None', 'none']:
             return metric.nn_discrepancy(self, data)
-        #elif method == 'adversarial_accuracy':
-        #    return metric.adversarial_accuracy(self.get_data('train'), self.get_data('test'), data)
+        elif method in ['adversarial_accuracy', 'nnaa']:
+            return metric.nnaa(self, data, **kwargs)
         elif method == 'discriminant':
             return metric.discriminant(self, data, **kwargs)
         else:
