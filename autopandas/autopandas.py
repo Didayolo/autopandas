@@ -564,7 +564,7 @@ class AutoData(pd.DataFrame):
     # TODO
     # Score reports, confusion matrix
 
-    def score(self, model=None, metric=None, method='baseline', fit=True, test=None, verbose=False):
+    def score(self, model=None, metric=None, method='baseline', test=None, fit=True, verbose=False):
         """ Benchmark, a.k.a. Utility. This method returns the score of a baseline on the dataset.
 
             Return the metric score of a model trained and tested on data.
@@ -577,7 +577,7 @@ class AutoData(pd.DataFrame):
             :param test: Test is an optional DataFrame to use as the test set.
             :param verbose: If True, prints model information, classification report and metric function.
         """
-        return benchmark.score(self, model=model, metric=metric, method=method, fit=fit, verbose=verbose)
+        return benchmark.score(self, model=model, metric=metric, method=method, test=test, fit=fit, verbose=verbose)
 
     # Distribution comparator
     def distance(self, data, method=None, **kwargs):
