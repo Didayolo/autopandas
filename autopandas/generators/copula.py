@@ -44,7 +44,6 @@ def marginal_retrofit(Xartif, Xreal):
         # oversample Xreal
         Xreal = resample(Xreal, replace='True', n_samples=pa)
     # Otherwise do nothing
-
     # Loop over variables
     for i in range(n):
         # Sort the values of both arrays
@@ -70,6 +69,7 @@ def copula_generate(X, generator=None, n=None):
         generator = KernelDensity()
     if n is None:
         n = X.shape[0]
+    X_real = np.array(X)
     # X marginals to uniforms
     X = matrix_to_rank(X)
     # X uniforms to inverse gaussian CDF
@@ -79,7 +79,7 @@ def copula_generate(X, generator=None, n=None):
     # Generating artificial data \n Sampling from generator
     X_artif = generator.sample(n)
     # Marginal retrofitting
-    result = autopandas.AutoData(marginal_retrofit(X_artif, X))
+    result = autopandas.AutoData(marginal_retrofit(X_artif, X_real))
     # Restore data frame index
     result.indexes = indexes
     result.columns = columns
