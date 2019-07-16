@@ -676,3 +676,103 @@ def jensen_shannon(P, Q):
     _Q = Q / norm(Q, ord=1)
     _M = 0.5 * (_P + _Q)
     return (0.5 * (entropy(_P, _M) + entropy(_Q, _M))).round(3)
+
+def distance_correlation(X, Y):
+    """ Compute the distance correlation function.
+        Works with X and Y of different dimensions (but same number of samples mandatory).
+
+        :param X: Data
+        :param y: Class data
+        :return: Distance correlation
+        :rtype: float
+    """
+    X = np.atleast_1d(X)
+    Y = np.atleast_1d(Y)
+    if np.prod(X.shape) == len(X):
+        X = X[:, None]
+    if np.prod(Y.shape) == len(Y):
+        Y = Y[:, None]
+    X = np.atleast_2d(X)
+    Y = np.atleast_2d(Y)
+    n = X.shape[0]
+    if Y.shape[0] != X.shape[0]:
+        raise ValueError('Number of samples must match')
+    a = squareform(pdist(X))
+    b = squareform(pdist(Y))
+    A = a - a.mean(axis=0)[None, :] - a.mean(axis=1)[:, None] + a.mean()
+    B = b - b.mean(axis=0)[None, :] - b.mean(axis=1)[:, None] + b.mean()
+    dcov2_xy = (A * B).sum()/float(n * n)
+    dcov2_xx = (A * A).sum()/float(n * n)
+    dcov2_yy = (B * B).sum()/float(n * n)
+    dcor = np.sqrt(dcov2_xy)/np.sqrt(np.sqrt(dcov2_xx) * np.sqrt(dcov2_yy))
+    return dcor
+
+def relief_divergence(X1, X2):
+    """ Divergence based on (dist_to_nearest_miss - dist_to_nearest_hit)
+    """
+    p1, n = X1.shape
+    p2, nn = X2.shape
+    assert(n==nn)
+    # Compute Euclidean distance between all pairs of examples, 1st matrix
+    D1= squareform(pdist(X1))
+    np.fill_diagonal(D1, float('Inf'))
+    # Find distance to nearest hit
+    nh = D1.min(1)
+    # Compute Euclidean distance between all samples in X1 and X2
+    D12=cdist(X1,X2)
+    R = np.max(D12)
+    nm = D12.min(1)
+    # Mean difference dist to nearest miss and dist to nearest hit
+    L = np.mean((nm - nh) / R)
+    return max(0, L)
+
+def ks_test(X1, X2):
+    """ Paired Kolmogorov-Smirnov test for all matched pairs of variables in matrices X1 and X2.
+    """
+    n =X1.shape[1]
+    ks=np.zeros(n)
+    pval=np.zeros(n)
+    for i in range(n):
+        ks[i], pval[i] = ks_2samp (X1[:,i], X2[:,i])
+    return (ks, pval)
+
+def maximum_mean_discrepancy(A, B):
+    """ Compute the mean_discrepancy statistic between x and y.
+    """
+    # TODO
+    X = np.concatenate((A, B))
+    #X = th.cat([x, y], 0)
+    # dot product between all combinations of rows in 'X'
+    #XX = X @ X.t()
+    # dot product of rows with themselves
+    # Old code : X2 = (X * X).sum(dim=1)
+    X2 = (X * X).sum(dim=1)
+    #X2 = XX.diag().unsqueeze(0)
+    # exponent entries of the RBF kernel (without the sigma) for each
+    # combination of the rows in 'X'
+    # -0.5 * (i^Ti - 2*i^Tj + j^Tj)
+
+    #exponent = XX - 0.5 * (X2.expand_as(XX) + X2.t().expand_as(XX))
+
+    #lossMMD = np.sum(self.S * sum([(exponent * (1./bandwith)).exp() for bandwith in self.bandwiths]))
+    #L=lossMMD.sqrt()
+    L = []
+    return L
+
+def cov_discrepancy(A, B):
+    """ Root mean square difference in covariance matrices.
+    """
+    CA = np.cov(A, rowvar=False);
+    CB = np.cov(B, rowvar=False);
+    n = CA.shape[0]
+    L = np.sqrt( np.linalg.norm(CA-CB) / n**2 )
+    return L
+
+def corr_discrepancy(A, B):
+    """ Root mean square difference in correlation matrices.
+    """
+    CA = np.corrcoef(A, rowvar=False);
+    CB = np.corrcoef(B, rowvar=False);
+    n = CA.shape[0]
+    L = np.sqrt( np.linalg.norm(CA-CB) / n**2 )
+    return L

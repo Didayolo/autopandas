@@ -1,10 +1,8 @@
 # Example generator. Copycat simply copy training data.
 
 class Copycat():
-    """ Baseline generator: simply copy training data.
-    """
     def __init__(self):
-        """ Initialize the Copycat.
+        """ Baseline generator: simply copy training data.
         """
         self.data = None
 

@@ -7,11 +7,9 @@ from sklearn.datasets.samples_generator import make_blobs
 from sklearn.datasets import make_circles
 
 class Artificial():
-    """ Artificial data generator.
-        Generate 2D classification datasets.
-    """
     def __init__(self, method='moons', n=200):
-        """ Initalize the artificial data generator.
+        """ Artificial data generator.
+            Generate 2D classification datasets.
 
             :param method: 'moons', 'blobs' or 'circles'.
             :param n: Number of artificial points to create.

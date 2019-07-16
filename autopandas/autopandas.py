@@ -23,7 +23,7 @@ from .utils import visualization as visualization
 from .utils import benchmark as benchmark
 from .utils import metric as metric
 from .utils import automl as automl
-#from .utils import nnaa as nnaa
+from .utils import sdv as sdv
 # generators
 from .generators import generators as generators
 
@@ -94,13 +94,7 @@ def distance(ad1, ad2, method=None): #, **kwargs): TODO
     return ad1.distance(ad2, method=method) #, **kwargs)
 
 class AutoData(pd.DataFrame):
-    """ AutoData is a data structure extending Pandas DataFrame.
-        The goal is to quickly get to grips with a dataset.
-        An AutoData object represents a 2D data frame with:
-          - Examples in rows
-          - Features in columns
-    """
-    _metadata = ['indexes']
+    _metadata = ['indexes'] # Python magic
 
     ## 1. #################### READ/WRITE DATA ######################
 
@@ -109,7 +103,12 @@ class AutoData(pd.DataFrame):
     # Init/save info, etc. (AutoML info)
 
     def __init__(self, *args, indexes=None, **kwargs):  # indexes = None
-        """ Create an AutoData object.
+        """ AutoData is a data structure extending Pandas DataFrame.
+            The goal is to quickly get to grips with a dataset.
+            An AutoData object represents a 2D data frame with:
+              - Examples in rows
+              - Features in columns
+
             If needed, automatically do:
             * numerical/categorical variables inference
             * train/test split

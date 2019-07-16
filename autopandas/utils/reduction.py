@@ -6,6 +6,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.feature_extraction import FeatureHasher
 import pandas as pd
 import autopandas
+import numpy as np
 
 def pca(data, key=None, verbose=False, **kwargs):
     """ Compute PCA.
@@ -72,7 +73,7 @@ def lda(data, key=None, verbose=False, **kwargs):
     if y.shape[1] > 1:
         print("WARNING: LDA can't handle multi-output class. Only the first column will be used.\nUse set_class method to define another target before calling lda.")
         y = y[y.columns[0]]
-    X = lda.fit_transform(X, y)
+    X = lda.fit_transform(X, np.array(y).ravel()) # ravel to avoid warnings
     return X
 
 def feature_hashing(data, key=None, n_features=10, **kwargs):

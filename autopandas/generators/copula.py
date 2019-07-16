@@ -86,10 +86,8 @@ def copula_generate(X, generator=None, n=None):
     return result
 
 class Copula():
-    """ Copula generator.
-    """
     def __init__(self):
-        """ Initialize the generator.
+        """ Copula generator.
         """
         self.data = None
 

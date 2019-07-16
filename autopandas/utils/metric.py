@@ -16,8 +16,11 @@ import itertools
 #from .nn_adversarial_accuracy import NearestNeighborMetrics
 #from .nnaa import nnaa
 
-# Between Points (1D)
-#####################
+# Between Points/Columns (1D)
+#############################
+# Still in utilities.py
+# Find distances that works well with binary/categorical data
+
 def distance(x, y, axis=None, norm='euclidean', method=None):
     """ Compute the distance between x and y (data points).
 
@@ -49,70 +52,7 @@ def distance(x, y, axis=None, norm='euclidean', method=None):
     else:
         raise ValueError('Unknwon norm: {}.'.format(norm))
 
-# Between Columns (1D)
-######################
-# Still in utilities.py
-
-# Between Distributions (2D)
-############################
-#def adversarial_accuracy(train, test, synthetics):
-#    """ Compute nearest neighbors adversarial accuracy metric
-#    """
-#    nnm = NearestNeighborMetrics(train, test, synthetics)
-#    nnm.compute_nn()
-#    adversarial = nnm.compute_adversarial_accuracy()
-#    return adversarial
-
-def distance_correlation(X, Y):
-    """ Compute the distance correlation function.
-        Works with X and Y of different dimensions (but same number of samples mandatory).
-
-        :param X: Data
-        :param y: Class data
-        :return: Distance correlation
-        :rtype: float
-    """
-    X = np.atleast_1d(X)
-    Y = np.atleast_1d(Y)
-    if np.prod(X.shape) == len(X):
-        X = X[:, None]
-    if np.prod(Y.shape) == len(Y):
-        Y = Y[:, None]
-    X = np.atleast_2d(X)
-    Y = np.atleast_2d(Y)
-    n = X.shape[0]
-    if Y.shape[0] != X.shape[0]:
-        raise ValueError('Number of samples must match')
-    a = squareform(pdist(X))
-    b = squareform(pdist(Y))
-    A = a - a.mean(axis=0)[None, :] - a.mean(axis=1)[:, None] + a.mean()
-    B = b - b.mean(axis=0)[None, :] - b.mean(axis=1)[:, None] + b.mean()
-    dcov2_xy = (A * B).sum()/float(n * n)
-    dcov2_xx = (A * A).sum()/float(n * n)
-    dcov2_yy = (B * B).sum()/float(n * n)
-    dcor = np.sqrt(dcov2_xy)/np.sqrt(np.sqrt(dcov2_xx) * np.sqrt(dcov2_yy))
-    return dcor
-
-def relief_divergence(X1, X2):
-    """ Divergence based on (dist_to_nearest_miss - dist_to_nearest_hit)
-    """
-    p1, n = X1.shape
-    p2, nn = X2.shape
-    assert(n==nn)
-    # Compute Euclidean distance between all pairs of examples, 1st matrix
-    D1= squareform(pdist(X1))
-    np.fill_diagonal(D1, float('Inf'))
-    # Find distance to nearest hit
-    nh = D1.min(1)
-    # Compute Euclidean distance between all samples in X1 and X2
-    D12=cdist(X1,X2)
-    R = np.max(D12)
-    nm = D12.min(1)
-    # Mean difference dist to nearest miss and dist to nearest hit
-    L = np.mean((nm - nh) / R)
-    return max(0, L)
-
-def acc_stat (solution, prediction):
+def acc_stat(solution, prediction):
     """ Return accuracy statistics TN, FP, TP, FN
         Assumes that solution and prediction are binary 0/1 vectors.
     """
@@ -127,7 +67,7 @@ def acc_stat (solution, prediction):
     #print "FN =",FN
     return (TN, FP, TP, FN)
 
-def bac_metric (solution, prediction):
+def bac_metric(solution, prediction):
     """ Compute the balanced accuracy for binary classification.
     """
     [tn,fp,tp,fn] = acc_stat(solution, prediction)
@@ -141,6 +81,9 @@ def bac_metric (solution, prediction):
     tnr = tn / neg_num # true negative rate (specificity)
     bac = 0.5*(tpr + tnr)
     return bac
+
+# Between Distributions (2D)
+############################
 
 def nn_discrepancy(X1, X2):
     """ Use 1 nearest neighbor method to determine discrepancy between X1 and X2.
@@ -156,57 +99,6 @@ def nn_discrepancy(X1, X2):
     distances, indices = nbrs.kneighbors(X)
     Ypred = Y[indices[:,1]] # the second nearest neighbor is the loo neighbor
     return max(0, 2*bac_metric(Y, Ypred)-1)
-
-def ks_test(X1, X2):
-    """ Paired Kolmogorov-Smirnov test for all matched pairs of variables in matrices X1 and X2.
-    """
-    n =X1.shape[1]
-    ks=np.zeros(n)
-    pval=np.zeros(n)
-    for i in range(n):
-        ks[i], pval[i] = ks_2samp (X1[:,i], X2[:,i])
-    return (ks, pval)
-
-def maximum_mean_discrepancy(A, B):
-    """ Compute the mean_discrepancy statistic between x and y.
-    """
-    # TODO
-    X = np.concatenate((A, B))
-    #X = th.cat([x, y], 0)
-    # dot product between all combinations of rows in 'X'
-    #XX = X @ X.t()
-    # dot product of rows with themselves
-    # Old code : X2 = (X * X).sum(dim=1)
-    X2 = (X * X).sum(dim=1)
-    #X2 = XX.diag().unsqueeze(0)
-    # exponent entries of the RBF kernel (without the sigma) for each
-    # combination of the rows in 'X'
-    # -0.5 * (i^Ti - 2*i^Tj + j^Tj)
-
-    #exponent = XX - 0.5 * (X2.expand_as(XX) + X2.t().expand_as(XX))
-
-    #lossMMD = np.sum(self.S * sum([(exponent * (1./bandwith)).exp() for bandwith in self.bandwiths]))
-    #L=lossMMD.sqrt()
-    L = []
-    return L
-
-def cov_discrepancy(A, B):
-    """ Root mean square difference in covariance matrices.
-    """
-    CA = np.cov(A, rowvar=False);
-    CB = np.cov(B, rowvar=False);
-    n = CA.shape[0]
-    L = np.sqrt( np.linalg.norm(CA-CB) / n**2 )
-    return L
-
-def corr_discrepancy(A, B):
-    """ Root mean square difference in correlation matrices.
-    """
-    CA = np.corrcoef(A, rowvar=False);
-    CB = np.corrcoef(B, rowvar=False);
-    n = CA.shape[0]
-    L = np.sqrt( np.linalg.norm(CA-CB) / n**2 )
-    return L
 
 def discriminant(data1, data2, model=None, metric=None, name1='Dataset 1', name2='Dataset 2', same_size=False, verbose=False):
     """ Return the scores of a classifier trained to differentiate data1 and data2.
@@ -261,3 +153,23 @@ def discriminant(data1, data2, model=None, metric=None, name1='Dataset 1', name2
         print(report)
         print('Metric: {}'.format(metric))
     return metric(y_test, model.predict(X_test))
+
+'''
+# adversarial_accuracy
+def nnaa(data1, data2, distance_func=None):
+    """ Compute nearest neighbors adversarial accuracy
+        Formula
+        Can be seen as the binary classification score of a 1NN trying to tell if a point is from data1 or data2, in a leave one out setting.
+    """
+    data1, data2 = np.array(data1), np.array(data2)
+    if distance_func is None:
+        distance_func = distance
+    len1, len2 = len(data1), len(data2)
+    distance_matrix = np.empty((len1, len2))
+    for i in range(len1):
+        for j in range(len2):
+            distance_matrix[i, j] = distance_func(data1[i], data2[j])
+    HOT = distance_matrix.min(axis=0), distance_matrix.min(axis=1)
+    # besoin de dist(d1, d1) et dist(d2, d2)
+    return distance_matrix
+'''

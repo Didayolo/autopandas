@@ -8,7 +8,7 @@ from sklearn.base import clone
 
 class ANM():
     def __init__(self, model=None):
-        """ Data generator using multiple imputations with random forest.
+        """ Data generator using multiple imputations with random forest (or another model).
 
             :param model: Model used for imputations.
         """
