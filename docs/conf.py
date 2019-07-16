@@ -30,7 +30,7 @@ copyright = '2019, Adrien Pavao'
 author = 'Adrien Pavao'
 
 # The short X.Y version
-version = '0.2.7'
+version = '0.2.8'
 # The full version, including alpha/beta/rc tags
 release = version
 

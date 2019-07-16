@@ -130,7 +130,7 @@ class AutoData(pd.DataFrame):
         return AutoData
 
     def copy(self):
-        """ Redefining copy to keep indexes from one copy to another.
+        """ Re-defines copy to keep indexes from one copy to another.
         """
         data = pd.DataFrame.copy(self)
         data.indexes = self.indexes.copy()
@@ -152,6 +152,10 @@ class AutoData(pd.DataFrame):
         pass
 
     def set_indexes(self, key, value):
+        """ Set an entry in the index.
+
+            For example: data.set_indexes('y', 'income')
+        """
         self.indexes[key] = value
 
     def get_index(self, key=None):
@@ -194,6 +198,7 @@ class AutoData(pd.DataFrame):
 
     def get_data(self, key=None):
         """ Get data.
+
             :param key: wanted subset of data ('train', 'categorical_header', 'y', etc.)
         """
         data = self.loc[self.get_index(key)].copy()
@@ -291,8 +296,9 @@ class AutoData(pd.DataFrame):
         self.set_indexes('test', test_index)
 
     def set_class(self, y=None):
-        """ Procedure
-            Define the column(s) representing a class (y).
+        """ Procedure that defines one or several column(s) representing class / target / y.
+
+            :param y: str or list of str representing column names to use as class(es). If y is None then the target is re-initialized (no class).
         """
         X = list(self)  # column names
         # no class (re-initialize)
@@ -386,7 +392,7 @@ class AutoData(pd.DataFrame):
         return data
 
     def encoding(self, method='label', key=None, target=None, split=True):
-        """ Encode categorical variables.
+        """ Encode (categorical) variables.
 
             :param method: 'none', 'label', 'one-hot', 'rare-one-hot', 'target', 'likelihood', 'count', 'probability'
             :param target: Target column name (target encoding).
@@ -490,7 +496,7 @@ class AutoData(pd.DataFrame):
         return data
 
     def reduction(self, method='pca', key=None, verbose=False, **kwargs):
-        """ Dimensionality reduction
+        """ Dimensionality reduction.
 
             :param method: 'pca', 'lda', 'tsne' or 'hashing'
         """
@@ -514,7 +520,11 @@ class AutoData(pd.DataFrame):
 
     def plot(self, key=None, ad=None, c=None, save=None, **kwargs):
         """ Plot AutoData frame.
-            Show 2D scatter plot or heatmap.
+            * Distribution plot for 1D data
+            * Scatter plot for 2D data
+            * Heatmap for >2D data
+
+            For scatter plot, coloration is by default the class if possible, or can be defined with c parameter.
 
             :param key: Key for subset selection (e.g. 'X_train' or 'categorical')
             :param ad: AutoData frame to plot in superposition
@@ -555,7 +565,7 @@ class AutoData(pd.DataFrame):
     # Score reports, confusion matrix
 
     def score(self, model=None, metric=None, method='baseline', fit=True, test=None, verbose=False):
-        """ Benchmark, a.k.a. Utility.
+        """ Benchmark, a.k.a. Utility. This method returns the score of a baseline on the dataset.
 
             Return the metric score of a model trained and tested on data.
             If a test set is defined ('test' parameter), the model is trained on 'data' and tested on 'test'.

@@ -7,7 +7,11 @@ import numpy as np
 
 def plot(data, key=None, ad=None, c=None, save=None, **kwargs):
     """ Plot AutoData frame.
-        Show 2D scatter plot or heatmap.
+        * Distribution plot for 1D data
+        * Scatter plot for 2D data
+        * Heatmap for >2D data
+
+        For scatter plot, coloration is by default the class if possible, or can be defined with c parameter.
 
         :param key: Key for subset selection (e.g. 'X_train' or 'categorical')
         :param ad: AutoData frame to plot in superposition
@@ -95,8 +99,10 @@ def correlation(data, key=None, save=None, **kwargs):
         f.savefig(save)
 
 def compare_marginals(data1, data2, key=None, method='all', target=None, save=None, name1='dataset 1', name2='dataset2'):
-    """ Plot the metric for each variable from ds1 and ds2.
+    """ Plot the metric (e.g. mean) for each variable from data1 and data2.
+        If the distributions are similar, the points will follow the y=x line.
         Mean, standard deviation or correlation with target.
+        data1 and data2 has to have the same number of features.
 
         :param method: 'mean', 'std', 'corr', 'all'
         :param target: Column name for the target for correlation method
@@ -105,24 +111,19 @@ def compare_marginals(data1, data2, key=None, method='all', target=None, save=No
     has_class = data1.has_class() and data2.has_class()
     if (method == 'all' or method == 'corr') and (target is None and not has_class):
         raise OSError('You must define a target to use {} method.'.format(method))
-
     X1 = data1.get_data(key)
     X2 = data2.get_data(key)
-
     x_mean, y_mean = [], []
     x_std, y_std = [], []
     x_corr, y_corr = [], []
-
     if method in ['mean', 'all']:
         for column in list(X1.columns):
             x_mean.append(X1[column].mean())
             y_mean.append(X2[column].mean())
-
     if method in ['std', 'all']:
         for column in list(X1.columns):
             x_std.append(X1[column].std())
             y_std.append(X2[column].std())
-
     if method in ['corr', 'all']:
         if has_class and (target is None):
             y1 = X1[X1.indexes['y'][0]] #.get_data('y') # TODO
@@ -145,7 +146,7 @@ def compare_marginals(data1, data2, key=None, method='all', target=None, save=No
             y_corr.append(X2[column].corr(y2))
     elif method not in ['mean', 'std', 'corr', 'all']:
         raise OSError('{} metric is not taken in charge'.format(method))
-
+    # Let's go
     if method == 'mean':
         plt.plot(x_mean, y_mean, 'o', color='b')
         plt.xlabel('Mean of variables in ' + name1)
@@ -173,7 +174,6 @@ def compare_marginals(data1, data2, key=None, method='all', target=None, save=No
         plt.plot([-1, 1], [-1, 1], color='grey', alpha=0.4)
     else:
         raise OSError('{} metric is not taken in charge'.format(method))
-
     if save is not None:
         plt.savefig(save)
     plt.show()

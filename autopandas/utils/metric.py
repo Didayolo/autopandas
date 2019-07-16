@@ -87,7 +87,6 @@ def distance_correlation(X, Y):
     b = squareform(pdist(Y))
     A = a - a.mean(axis=0)[None, :] - a.mean(axis=1)[:, None] + a.mean()
     B = b - b.mean(axis=0)[None, :] - b.mean(axis=1)[:, None] + b.mean()
-
     dcov2_xy = (A * B).sum()/float(n * n)
     dcov2_xx = (A * A).sum()/float(n * n)
     dcov2_yy = (B * B).sum()/float(n * n)
@@ -209,15 +208,17 @@ def corr_discrepancy(A, B):
     L = np.sqrt( np.linalg.norm(CA-CB) / n**2 )
     return L
 
-def discriminant(data1, data2, model=LogisticRegression(), metric=None, name1='Dataset 1', name2='Dataset 2', same_size=False, verbose=False):
+def discriminant(data1, data2, model=None, metric=None, name1='Dataset 1', name2='Dataset 2', same_size=False, verbose=False):
     """ Return the scores of a classifier trained to differentiate data1 and data2.
 
-        :param model: The classifier. It has to have fit(X,y) and score(X,y) methods.
-        :param metric: The scoring metric
+        :param model: The classifier. It has to have fit(X,y) and score(X,y) methods. Logistic regression by default.
+        :param metric: The scoring metric. Accuracy by default.
         :param same_size: If True, normalize datasets to same size before computation.
         :return: Classification report (precision, recall, f1-score).
         :rtype: str
     """
+    if model is None:
+        model = LogisticRegression()
     if metric is None:
         metric = accuracy_score
     # check if train/test split already exists or do it

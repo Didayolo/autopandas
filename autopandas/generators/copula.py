@@ -30,8 +30,8 @@ def rank_matrix_to_inverse(X):
     return matrix
 
 def marginal_retrofit(Xartif, Xreal):
-    ''' Retrofit the marginal distributions of the features in Xartif to those in Xreal.
-    '''
+    """ Retrofit the marginal distributions of the features in Xartif to those in Xreal.
+    """
     pa,n = Xartif.shape
     pr,nr = Xreal.shape
     assert(n==nr)
@@ -61,7 +61,7 @@ def marginal_retrofit(Xartif, Xreal):
 def copula_generate(X, generator=None, n=None):
     """ Generate using copula trick.
 
-        :param generator: Model to fit and sample from.
+        :param generator: Model to fit and sample from. KDE by default.
         :param n: Number of examples to generate. By default it is the number of observations in X.
     """
     indexes = X.indexes
@@ -89,12 +89,23 @@ class Copula():
     """ Copula generator.
     """
     def __init__(self):
+        """ Initialize the generator.
+        """
         self.data = None
 
     def fit(self, data):
+        """ Use the copula trick and train the generator with data.
+
+            :param data: Data frame to use as training set.
+        """
         self.data = copula_generate(data)
 
     def sample(self, n=1, replace=False):
+        """ Sample from trained generator.
+
+            :param n: Number of examples to sample.
+            :param replace: If True, sample with replacement.
+        """
         if self.data is None:
             raise Exception('You firstly need to train the copula generator before sampling. Please use fit method.')
         else:

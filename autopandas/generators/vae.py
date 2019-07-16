@@ -9,6 +9,7 @@ from scipy.stats import norm
 from keras import backend as K
 from keras.layers import Input, Dense, Lambda, Layer, Add, Multiply
 from keras.models import Model, Sequential
+import autopandas
 
 def nll(y_true, y_pred):
     """ Negative log likelihood (Bernoulli). """
@@ -88,6 +89,9 @@ class VAE():
         self.vae = vae
         self.encoder = encoder
         self.decoder = decoder
+        # for data frame indexes
+        self.columns = None
+        self.indexes = None
 
     def get_vae(self):
         return self.vae
@@ -100,9 +104,18 @@ class VAE():
 
     def fit(self, X, **kwargs):
         if isinstance(X, pd.DataFrame):
+            self.columns = X.columns
+            if isinstance(X, autopandas.AutoData):
+                self.indexes = X.indexes
             X = X.as_matrix()
         return self.vae.fit(X, X, **kwargs)
 
     def sample(self, n=100, loc=0, scale=1):
         randoms = np.array([np.random.normal(loc, scale, self.latent_dim) for _ in range(n)])
-        return self.decoder.predict(randoms)
+        decoded = self.decoder.predict(randoms)
+        decoded = autopandas.AutoData(decoded)
+        if self.columns is not None:
+            decoded.columns = self.columns
+        if self.indexes is not None:
+            decoded.indexes = self.indexes
+        return decoded

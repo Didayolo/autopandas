@@ -4,12 +4,23 @@ class Copycat():
     """ Baseline generator: simply copy training data.
     """
     def __init__(self):
+        """ Initialize the Copycat.
+        """
         self.data = None
 
     def fit(self, data):
+        """ Train the generator with data.
+
+            :param data: The data to copy.
+        """
         self.data = data
 
     def sample(self, n=1, replace=False):
+        """ Sample from train data.
+
+            :param n: Number of examples to sample.
+            :param replace: If True, sample with replacement.
+        """
         if self.data is None:
             raise Exception('You firstly need to train the Copycat before sampling. Please use fit method.')
         else:

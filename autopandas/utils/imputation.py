@@ -6,7 +6,7 @@ def mean(data, column):
         :param data: AutoData data
         :param column: Column to impute
         :return: Imputed data
-        :rtype: AutoData
+        :rtype: autopandas.AutoData
     """
     data[column] = data[column].fillna(data[column].mean())
     return data
@@ -17,7 +17,7 @@ def median(data, column):
         :param data: AutoData data
         :param column: Column to impute
         :return: Imputed data
-        :rtype: AutoData
+        :rtype: autopandas.AutoData
     """
     data[column] = data[column].fillna(data[column].median())
     return data
@@ -28,7 +28,7 @@ def remove(data, columns):
         :param data: AutoData data
         :param column: Column to impute
         :return: Imputed data
-        :rtype: AutoData
+        :rtype: autopandas.AutoData
     """
     data = data.dropna(axis=0, subset=columns)
     return data
@@ -39,7 +39,7 @@ def most(data, column):
         :param data: AutoData data
         :param column: Column to impute
         :return: Imputed data
-        :rtype: AutoData
+        :rtype: autopandas.AutoData
     """
     most_frequent_value = data[column].value_counts().idxmax()
     data[column] = data[column].fillna(most_frequent_value)
