@@ -45,25 +45,27 @@ class VAE():
             :param latent_dim: Dimension of latent space layer.
             :param espilon_std: Standard deviation of gaussian distribution prior.
         """
-        is_multilayer = not isinstance(intermediate_dim, int) # True if there are several intermediate layers
-
+        if isinstance(intermediate_dim, int): # 1 intermediate layers
+            intermediate_dim = [intermediate_dim]
+        
+        # decoder architecture
         decoder = Sequential()
-        if is_multilayer:
+        if len(intermediate_dim) > 0: # 1 or more intermediate layers
             # in the decoder we arrange layers in the opposite order compared to the encoder
             decoder.add(Dense(intermediate_dim[-1], input_dim=latent_dim, activation='relu'))
             for layer_dim in reversed(intermediate_dim[:-1]):
                 decoder.add(Dense(layer_dim, activation='relu'))
-        else:
-            decoder.add(Dense(intermediate_dim, input_dim=latent_dim, activation='relu'))
+        # else, no layers between input and latent space
         decoder.add(Dense(original_dim, activation='sigmoid'))
 
+        # encoder architecture
         x = Input(shape=(original_dim,))
-        if is_multilayer:
+        if len(intermediate_dim) > 0:
             h = Dense(intermediate_dim[0], activation='relu')(x)
             for layer_dim in intermediate_dim[1:]:
                 h = Dense(layer_dim, activation='relu')(h)
         else:
-            h = Dense(intermediate_dim, activation='relu')(x)
+            h = x
 
         z_mu = Dense(latent_dim)(h)
         z_log_var = Dense(latent_dim)(h)
