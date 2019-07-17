@@ -12,13 +12,12 @@ def encode(data):
     # loop through every column
     limits = {}
     min_max = {}
+    data = data.copy()
     for c in data.columns:
-        # if object or int
-        if data[c].dtype.char == 'O' or data[c].dtype.char == 'l':
+        if c in data.indexes['categorical']: # if categorical
             data[c], lim = categorical(data[c])
             limits[c] = lim
-        # if decimal
-        elif data[c].dtype.char == 'd':
+        else: # if numerical
             data[c], min_res, max_res = numeric(data[c])
             min_max[c] = (min_res, max_res)
     return data, limits, min_max

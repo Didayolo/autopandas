@@ -22,7 +22,6 @@ file_loc = os.path.split(__file__)[0]
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(file_loc), '.')))
 import autopandas
 
-
 # -- Project information -----------------------------------------------------
 
 project = 'autopandas'
@@ -30,7 +29,7 @@ copyright = '2019, Adrien Pavao'
 author = 'Adrien Pavao'
 
 # The short X.Y version
-version = '0.3.1'
+version = '0.3.2'
 # The full version, including alpha/beta/rc tags
 release = version
 
