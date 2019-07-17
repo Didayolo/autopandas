@@ -6,10 +6,8 @@ from .copycat import Copycat
 from .vae import VAE
 from .anm import ANM
 from .copula import Copula
-
-# Gaussian Mixture and Parzen Widows from scikit-learn
-from sklearn.mixture import GaussianMixture as GMM
-from sklearn.neighbors import KernelDensity as KDE
+from .gmm import GMM
+from .kde import KDE
 
 # TODO
 # GAN, WGAN, medGAN

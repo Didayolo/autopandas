@@ -57,6 +57,7 @@ def from_train_test(train, test):
     ad.indexes = indexes
     ad.set_indexes('train', range(0, len(train)))
     ad.set_indexes('test', range(len(train), len(ad)))
+    ad = ad.reset_index(drop=True)
     return ad
 
 def from_X_y(X, y):
@@ -332,6 +333,11 @@ class AutoData(pd.DataFrame):
         test = ('test' in self.indexes.keys()) and (self.indexes['test'] != [])
         return (train and test)
 
+    def impute(self, **kwargs):
+        """ Alias for imputation method.
+        """
+        return self.imputation(**kwargs)
+
     def imputation(self, method='most', key=None):
         """ Impute missing values.
 
@@ -354,10 +360,16 @@ class AutoData(pd.DataFrame):
                 raise Exception('Unknown imputation method: {}'.format(method))
         return data
 
-    def normalization(self, method='standard', key=None, split=True):
+    def normalize(self, **kwargs):
+        """ Alias for normalization method.
+        """
+        return self.normalization(**kwargs)
+
+    def normalization(self, method='standard', key='numerical', split=True):
         """ Normalize data.
 
             :param method: 'standard', 'min-max', None
+            :param key: Subset of data to encode. Put to None for all columns. 'numerical' by default.
             :param split: If False, do the processing on the whole frame without train/test split.
             :return: Normalized data.
             :rtype: AutoData
@@ -390,10 +402,16 @@ class AutoData(pd.DataFrame):
         #data.flush_index()
         return data
 
-    def encoding(self, method='label', key=None, target=None, split=True):
+    def encode(self, **kwargs):
+        """ Alias for encoding method.
+        """
+        return self.encoding(**kwargs)
+
+    def encoding(self, method='label', key='categorical', target=None, split=True):
         """ Encode (categorical) variables.
 
             :param method: 'none', 'label', 'one-hot', 'rare-one-hot', 'target', 'likelihood', 'count', 'probability'
+            :param key: Subset of data to encode. Put to None for all columns. 'categorical' by default.
             :param target: Target column name (target encoding).
             :param coeff: Coefficient defining rare values (rare one-hot encoding).
                           A rare category occurs less than the (average number of occurrence * coefficient).

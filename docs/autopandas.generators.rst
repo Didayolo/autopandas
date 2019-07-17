@@ -44,6 +44,22 @@ autopandas.generators.generators module
     :undoc-members:
     :show-inheritance:
 
+autopandas.generators.gmm module
+--------------------------------
+
+.. automodule:: autopandas.generators.gmm
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+autopandas.generators.kde module
+--------------------------------
+
+.. automodule:: autopandas.generators.kde
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 autopandas.generators.vae module
 --------------------------------
 

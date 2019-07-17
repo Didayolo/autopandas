@@ -109,8 +109,6 @@ def compare_marginals(data1, data2, key=None, method='all', target=None, save=No
         :param save: Path to save the figure (doesn't save if 'save' is None).
     """
     has_class = data1.has_class() and data2.has_class()
-    if (method == 'all' or method == 'corr') and (target is None and not has_class):
-        raise OSError('You must define a target to use {} method.'.format(method))
     X1 = data1.get_data(key)
     X2 = data2.get_data(key)
     x_mean, y_mean = [], []
@@ -124,28 +122,36 @@ def compare_marginals(data1, data2, key=None, method='all', target=None, save=No
         for column in list(X1.columns):
             x_std.append(X1[column].std())
             y_std.append(X2[column].std())
-    if method in ['corr', 'all']:
-        if has_class and (target is None):
-            y1 = X1[X1.indexes['y'][0]] #.get_data('y') # TODO
-            y2 = X2[X2.indexes['y'][0]] #.get_data('y')
+    skip_corr = False # skip correlation plot if no target and method=='all'
+    if method in ['corr', 'correlation', 'all']:
+        if target is None: # no defined target
+            if has_class:
+                y1 = X1[X1.indexes['y'][0]] #.get_data('y') # TODO
+                y2 = X2[X2.indexes['y'][0]] #.get_data('y')
+            else: # no class and no target
+                if method in ['corr', 'correlation']:
+                    raise Excpetion('Cannot compute correlation with target. Please define a target column with target argument or define a class with set_class method.')
+                else:
+                    print('WARNING: Skipping "correlation with target" metric because there is no defined target.')
+                    skip_corr = True
         else:
             y1 = X1[target]
             y2 = X2[target]
-        # Flatten one-hot (dirty)
-        if len(y1.shape) > 1:
-            if y1.shape[1] > 1:
-                y1 = np.where(y1==1)[1]
-                y1 = pd.Series(y1)
-        if len(y2.shape) > 1:
-            if y2.shape[1] > 1:
-                y2 = np.where(y2==1)[1]
-                y2 = pd.Series(y2)
-
-        for column in list(X1.columns):
-            x_corr.append(X1[column].corr(y1))
-            y_corr.append(X2[column].corr(y2))
-    elif method not in ['mean', 'std', 'corr', 'all']:
-        raise OSError('{} metric is not taken in charge'.format(method))
+        if not skip_corr:
+            # Flatten one-hot (dirty)
+            if len(y1.shape) > 1:
+                if y1.shape[1] > 1:
+                    y1 = np.where(y1==1)[1]
+                    y1 = pd.Series(y1)
+            if len(y2.shape) > 1:
+                if y2.shape[1] > 1:
+                    y2 = np.where(y2==1)[1]
+                    y2 = pd.Series(y2)
+            for column in list(X1.columns):
+                x_corr.append(X1[column].corr(y1))
+                y_corr.append(X2[column].corr(y2))
+    if method not in ['mean', 'std', 'corr', 'correlation', 'all']:
+        raise Exception('{} metric is not taken in charge'.format(method))
     # Let's go
     if method == 'mean':
         plt.plot(x_mean, y_mean, 'o', color='b')
@@ -157,7 +163,7 @@ def compare_marginals(data1, data2, key=None, method='all', target=None, save=No
         plt.xlabel('Standard deviation of variables in ' + name1)
         plt.ylabel('Standard deviation of variables in ' + name2)
         plt.plot([0, 0.4], [0, 0.4], color='grey', alpha=0.4)
-    elif method == 'corr':
+    elif method in ['corr', 'correlation']:
         plt.plot(x_corr, y_corr, 'o', color='r')
         plt.xlabel('Correlation with target of variables in ' + name1)
         plt.ylabel('Correlation with target of variables in ' + name2)
@@ -165,7 +171,8 @@ def compare_marginals(data1, data2, key=None, method='all', target=None, save=No
     elif method == 'all':
         plt.plot(x_mean, y_mean, 'o', color='b', alpha=0.9, label='Mean')
         plt.plot(x_std, y_std, 'o', color='g', alpha=0.8, label='Standard deviation')
-        plt.plot(x_corr, y_corr, 'o', color='r', alpha=0.7, label='Correlation with target')
+        if not skip_corr:
+            plt.plot(x_corr, y_corr, 'o', color='r', alpha=0.7, label='Correlation with target')
         plt.xlabel(name1 + ' variables')
         plt.ylabel(name2 +' variables')
         plt.legend(loc='upper left')
@@ -173,7 +180,7 @@ def compare_marginals(data1, data2, key=None, method='all', target=None, save=No
         plt.xlim(-1, 1)
         plt.plot([-1, 1], [-1, 1], color='grey', alpha=0.4)
     else:
-        raise OSError('{} metric is not taken in charge'.format(method))
+        raise Exception('{} metric is not taken in charge'.format(method))
     if save is not None:
         plt.savefig(save)
     plt.show()
