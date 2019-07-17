@@ -91,11 +91,10 @@ class ANM():
         if self.data is not None:
             data = self.data
         else:
-            raise('The generator needs to be trained before you can sample from it. Please use fit method.')
-        data = data.sample(n=n, replace=replace)
-        gen_data = data.copy()
+            raise('The ANM generator needs to be trained before you can sample from it. Please use fit method.')
+        gen_data = data.sample(n=n, replace=replace)
         # Loop over examples
-        for x in list(data.index.values):
+        for x in list(gen_data.index.values):
             # Loop over features
             for i, y in enumerate(list(data.columns.values)):
                 if np.random.random() < p:

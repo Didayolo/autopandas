@@ -193,6 +193,8 @@ def nnaa(data_s, data_t, distance_func=None, detailed_results=False):
         :param detailed_results: If True, return score but also score for TS and ST (the 2 components of the score).
     """
     data_s, data_t = np.array(data_s), np.array(data_t)
+    if(data_s.shape != data_t.shape):
+        raise Exception('The two data frames must have the same shapes but {} != {} got passed.'.format(data_s.shape, data_t.shape))
     # matrixes with distances between each points (m_ij is distance between i and j)
     distances_st = distance_matrix(data_s, data_t, distance_func=distance_func) # distances between data_s and data_t
     distances_ss = distance_matrix(data_s, data_s, distance_func=distance_func)
