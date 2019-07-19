@@ -8,22 +8,23 @@ import pandas as pd
 import autopandas
 import numpy as np
 
-def pca(data, key=None, verbose=False, **kwargs):
-    """ Compute PCA.
+def pca(data, key=None, return_param=False, verbose=False, model=None, **kwargs):
+    """ Compute Principal Components Analysis.
         Use kwargs for additional PCA parameters (cf. sklearn doc).
 
-        Parameters
-        ----------
-        key : Indexes key to select data.
-        verbose : Display additional information during run.
-
-        Returns
-        -------
-        AutoData
-            Transformed data
+        :param key: Indexes key to select data.
+        :param return_param: If True, returns a tuple (X, pca) to store PCA parameters and apply them later.
+        :param model: Use this argument to pass a trained PCA model.
+        :param verbose: Display additional information during run.
+        :rtype: autopandas.AutoData
+        :return: Transformed data
     """
-    pca = PCA(**kwargs)
-    X = pca.fit_transform(data.get_data(key))
+    X = data.get_data(key)
+    pca = model
+    if model is None: # initialize and fit PCA
+        pca = PCA(**kwargs)
+        pca.fit(X)
+    X = pca.transform(X)
     if verbose:
         print('Explained variance ratio of the {} components: \n {}'.format(pca.n_components_,
                                                                             pca.explained_variance_ratio_))
@@ -33,6 +34,8 @@ def pca(data, key=None, verbose=False, **kwargs):
                 tick_label=range(pca.n_components_))
         plt.title('Explained variance ratio by principal component')
         plt.show()
+    if return_param:
+        return X, pca
     return X
 
 def tsne(data, key=None, verbose=False, **kwargs):

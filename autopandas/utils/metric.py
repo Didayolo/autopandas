@@ -103,6 +103,8 @@ def nn_discrepancy(X1, X2):
 def discriminant(data1, data2, model=None, metric=None, name1='Dataset 1', name2='Dataset 2', same_size=False, verbose=False):
     """ Return the scores of a classifier trained to differentiate data1 and data2.
 
+        If the distributions are similar and the model can't distinguish then the score will be ~ 0.5 (depending on the metric of course).
+
         :param model: The classifier. It has to have fit(X,y) and score(X,y) methods. Logistic regression by default.
         :param metric: The scoring metric. Accuracy by default.
         :param same_size: If True, normalize datasets to same size before computation.
@@ -123,7 +125,7 @@ def discriminant(data1, data2, model=None, metric=None, name1='Dataset 1', name2
     ds2_train = data2.get_data('train')
     ds2_test = data2.get_data('test')
     if same_size:
-        # Same number of example in both dataset to compute
+        # We want same number of example in both dataset to compute
         if ds1_train.shape[0] < ds2_train.shape[0]:
             ds2_train = ds2_train.sample(n=ds1_train.shape[0])
         if ds1_train.shape[0] > ds2_train.shape[0]:
@@ -142,9 +144,7 @@ def discriminant(data1, data2, model=None, metric=None, name1='Dataset 1', name2
     y_test = [0] * len(X1_test) + [1] * len(X2_test)
     # Training
     model.fit(X_train, y_train)
-    # Score
-    #clf.score(X_test, y_test)
-    # metric here
+    # If verbose, more information
     target_names = [name1, name2]
     model_info = str(model)
     report = classification_report(model.predict(X_test), y_test, target_names=target_names)
@@ -152,9 +152,9 @@ def discriminant(data1, data2, model=None, metric=None, name1='Dataset 1', name2
         print(model_info)
         print(report)
         print('Metric: {}'.format(metric))
-    return metric(y_test, model.predict(X_test))
-
-# TODO
+    # Scoring
+    score = metric(y_test, model.predict(X_test))
+    return score
 
 def distance_matrix(data1, data2, distance_func=None):
     """ Compute matrix with distances between each points (m_ij is distance between i and j).

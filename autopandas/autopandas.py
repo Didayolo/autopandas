@@ -242,10 +242,15 @@ class AutoData(pd.DataFrame):
         """
         return len(self.columns) / len(self.get_data(key))
 
+    def categorical_ratio(self):
+        """ Alias for symbolic_ratio method.
+        """
+        return self.symbolic_ratio()
+
     def symbolic_ratio(self):
         """ Ratio of symbolic attributes.
         """
-        return len(self.get_data('numerical').columns) / len(self.columns)
+        return len(self.get_data('categorical').columns) / len(self.columns)
 
     def class_deviation(self):
         if self.has_class():
@@ -258,8 +263,33 @@ class AutoData(pd.DataFrame):
         """
         return (self.isnull().sum() / len(self)).mean()
 
-    # Memo skewness
-    #self.skew().min() # max # mean
+    def descriptors(self):
+        """ All in one.
+        """
+        names = []
+        values = []
+        if self.has_class():
+            names.append('task')
+            values.append(self.get_task())
+        names.append('shape')
+        values.append(self.shape)
+        names.append('ratio')
+        values.append(self.ratio()) # ratio dimension / number of examples
+        if self.has_class():
+            names.append('class_deviation')
+            values.append(self.class_deviation()) # mean std of target
+        names.append('categorical_ratio')
+        values.append(self.symbolic_ratio())  # ratio of symbolic attributes
+        names.append('missing_ratio')
+        values.append(self.missing_ratio())   # ratio of missing values
+        names.append('max_skewness')
+        values.append(self.skew().max())  # max skewness
+        names.append('mean_skewness')
+        values.append(self.skew().mean()) # mean skewness
+        names.append('min_skewness')
+        values.append(self.skew().min()) # min skewness
+        return AutoData([values], columns=names)
+
     ##################################################################
 
 
@@ -466,24 +496,32 @@ class AutoData(pd.DataFrame):
             data.flush_index() # update columns indexes for encoding that change number of columns
         return data
 
-    def pca(self, key=None, verbose=False, **kwargs):
-        """ Compute PCA.
+    def pca(self, key=None, return_param=False, model=None, verbose=False, **kwargs):
+        """ Compute Principal Components Analysis.
+            Use kwargs for additional PCA parameters (cf. sklearn doc).
 
-            :param verbose: Display additional information during run
-            :param **kwargs: Additional parameters for PCA (see sklearn doc)
-            :return: Transformed data
+            :param key: Indexes key to select data.
+            :param return_param: If True, returns a tuple (X, pca) to store PCA parameters and apply them later.
+            :param model: Use this argument to pass a trained PCA model.
+            :param verbose: Display additional information during run.
             :rtype: AutoData
+            :return: Transformed data
         """
         data = self.copy()
+        indexes = data.indexes
         rows, columns = data.get_index(key)
         # compute PCA and copy indexes
-        data = AutoData(
-            reduction.pca(data, key=key, verbose=verbose, **kwargs),
-            indexes=data.indexes)
+        if return_param:
+            data, pca = reduction.pca(data, key=key, return_param=return_param, model=model, verbose=verbose, **kwargs)
+        else:
+            data = reduction.pca(data, key=key, return_param=return_param, model=model, verbose=verbose, **kwargs)
+        data = AutoData(data, indexes=indexes)
         # variable are now only numerical
         data.indexes['categorical'] = []
         data.indexes['numerical'] = list(data)
         data.flush_index() # update columns index after dimensionality change
+        if return_param:
+            return data, pca
         return data
 
     def tsne(self, key=None, verbose=False, **kwargs):
@@ -609,7 +647,7 @@ class AutoData(pd.DataFrame):
             return metric.nn_discrepancy(self, data)
         elif method in ['adversarial_accuracy', 'nnaa']:
             return metric.nnaa(self, data, **kwargs)
-        elif method == 'discriminant':
+        elif method in ['discriminant', 'discrepancy', 'adversarial_score']:
             return metric.discriminant(self, data, **kwargs)
         else:
             raise Exception('Unknown distance metric: {}'.format(method))
