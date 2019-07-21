@@ -13,6 +13,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import pandas as pd
 import random
+import numpy as np
 
 # Import project files
 from .utils import imputation as imputation
@@ -252,6 +253,11 @@ class AutoData(pd.DataFrame):
         """
         return len(self.get_data('categorical').columns) / len(self.columns)
 
+    def sparsity(self):
+        """ Compute the proportion of zeros.
+        """
+        return 1 - (np.count_nonzero(self) / self.size)
+
     def class_deviation(self):
         if self.has_class():
             return self.get_data('y').std().mean()
@@ -275,6 +281,8 @@ class AutoData(pd.DataFrame):
         values.append(self.shape)
         names.append('ratio')
         values.append(self.ratio()) # ratio dimension / number of examples
+        names.append('sparsity')
+        values.append(self.sparsity()) # proportion of zeros
         if self.has_class():
             names.append('class_deviation')
             values.append(self.class_deviation()) # mean std of target

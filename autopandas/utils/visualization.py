@@ -5,7 +5,7 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 
-def plot(data, key=None, ad=None, c=None, save=None, **kwargs):
+def plot(data, key=None, ad=None, c=None, save=None, names=None, **kwargs):
     """ Plot AutoData frame.
         * Distribution plot for 1D data
         * Scatter plot for 2D data
@@ -18,6 +18,8 @@ def plot(data, key=None, ad=None, c=None, save=None, **kwargs):
         :param c: Sequence of color specifications of length n (e.g. data.get_data('y'))
         :param save: Path/filename to save figure (if not None)
     """
+    if names is None:
+        names = ['data 1', 'data 2']
     data = data.get_data(key)
     feat_num = data.shape[1]
     sns.set(style="ticks")
@@ -47,8 +49,9 @@ def plot(data, key=None, ad=None, c=None, save=None, **kwargs):
             print('WARNING: TODO legend and all.')
         elif feat_num == 2 and ad.shape[1] == 2: # if 2 features, overlay plots
             x1, y1, x2, y2 = data.iloc[:,0], data.iloc[:,1], ad.iloc[:,0], ad.iloc[:,1]
-            plt.plot(x1, y1, 'o', alpha=.9, color='blue') #, label=label1) # lw=2, s=1, color='blue',
-            plt.plot(x2, y2, 'x', alpha=.8, color='orange') #, marker='x') #, label=label2) # lw=2, s=1
+            plt.plot(x1, y1, 'o', alpha=.9, color='blue', label=names[0]) # lw=2, s=1, color='blue',
+            plt.plot(x2, y2, 'x', alpha=.8, color='orange', label=names[1]) #, marker='x') # lw=2, s=1
+            plt.legend()
             plt.axis([min(min(x1), min(x2)), max(max(x1), max(x2)), min(min(y1), min(y2)), max(max(y1), max(y2))])
         else: # Not 2D plots
             print('Overlay plot is only for 1D or 2D data.')
