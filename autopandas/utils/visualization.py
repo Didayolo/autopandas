@@ -51,7 +51,7 @@ def plot(data, key=None, ad=None, c=None, save=None, names=None, **kwargs):
             x1, y1, x2, y2 = data.iloc[:,0], data.iloc[:,1], ad.iloc[:,0], ad.iloc[:,1]
             plt.plot(x1, y1, 'o', alpha=.9, color='blue', label=names[0]) # lw=2, s=1, color='blue',
             plt.plot(x2, y2, 'x', alpha=.8, color='orange', label=names[1]) #, marker='x') # lw=2, s=1
-            plt.legend()
+            plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
             plt.axis([min(min(x1), min(x2)), max(max(x1), max(x2)), min(min(y1), min(y2)), max(max(y1), max(y2))])
         else: # Not 2D plots
             print('Overlay plot is only for 1D or 2D data.')
