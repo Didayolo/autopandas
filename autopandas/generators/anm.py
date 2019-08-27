@@ -88,6 +88,7 @@ class ANM():
             :return: Generated data
             :rtype: pd.DataFrame
         """
+        # TODO: predicted matrix, residual matrix, noise boolean argument
         if self.data is not None:
             data = self.data
         else:
@@ -99,10 +100,28 @@ class ANM():
             for i, y in enumerate(list(data.columns.values)):
                 if np.random.random() < p:
                     row = data.loc[[x]].drop(y, axis=1)
-                    # DEBUG
                     prediction = self.models[i].predict(row)
                     if isinstance(prediction, np.ndarray):
-                        gen_data.at[x, y] = prediction[0]
-                    else:
-                        gen_data.at[x, y] = prediction
+                        prediction = prediction[0] # select first value if needed
+                    gen_data.at[x, y] = prediction
         return gen_data.reset_index(drop=True)
+
+# MEMO (for the TODO)
+'''
+def generate(self):
+    data = self.get_data()
+    predicted_matrix = np.zeros(data.shape)
+    residual_matrix = np.zeros(data.shape)
+    for x in list(data.index.values):
+        for i, y in enumerate(list(data.columns.values)):
+            row = data.loc[[x]].drop(y, axis=1)
+            predicted_matrix[x, i] = self.models[i].predict(row)
+            residual_matrix[x, i] = (predicted_matrix[x,i] - data.loc[x, y])**2
+    var_vector = np.mean(residual_matrix, axis=0)
+    for i in range(predicted_matrix.shape[0]):
+        row = predicted_matrix[i, :]
+        for j, y in enumerate(list(data.columns.values)):
+            self.gen_data.at[i, y] = row[j] + np.random.normal(loc=0, scale=np.sqrt(var_vector[j]))
+
+return self.gen_data
+'''
