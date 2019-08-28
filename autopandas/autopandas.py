@@ -622,6 +622,9 @@ class AutoData(pd.DataFrame):
     def compare_marginals(self, ad, **kwargs):
         visualization.compare_marginals(self, ad, **kwargs)
 
+    def hierarchical_clustering(self, **kwargs):
+        visualization.hierarchical_clustering(self, **kwargs)
+
     ## 4. ######################## BENCHMARK ##########################
 
     # TODO
