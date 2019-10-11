@@ -146,11 +146,14 @@ class AutoData(pd.DataFrame):
         else: # Do not write index column
             super(AutoData, self).to_csv(*args, **kwargs, index=False)
 
-    def to_automl(self):
+    def to_automl(self, path, name='autodata'):
         """ Write files in AutoML format.
-            TODO
+            AutoML format is ideal to create a Codalab competition.
+
+            :param path: where to save the dataset
+            :param name: name of the dataset to put into filenames
         """
-        pass
+        automl.to_automl(self, path, name=name)
 
     def set_indexes(self, key, value):
         """ Set an entry in the index.
