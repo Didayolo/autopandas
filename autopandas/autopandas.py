@@ -27,6 +27,10 @@ from .utils import automl as automl
 from .utils import sdv as sdv
 # generators
 from .generators import generators as generators
+# some transformations
+from sklearn.preprocessing import Binarizer
+from sklearn.decomposition import FactorAnalysis
+from sklearn.random_projection import GaussianRandomProjection
 
 def read_csv(*args, **kwargs):
     """ Read data from CSV file.
@@ -406,10 +410,10 @@ class AutoData(pd.DataFrame):
         """
         return self.normalization(**kwargs)
 
-    def normalization(self, method='standard', key='numerical', split=True):
+    def normalization(self, method='standard', key='numerical', split=True, **kwargs):
         """ Normalize data.
 
-            :param method: 'standard', 'min-max', None
+            :param method: 'standard', 'min-max', None, 'binarize'
             :param key: Subset of data to encode. Put to None for all columns. 'numerical' by default.
             :param split: If False, do the processing on the whole frame without train/test split.
             :return: Normalized data.
@@ -423,6 +427,8 @@ class AutoData(pd.DataFrame):
             train = data.get_data('train')
             test = data.get_data('test')
         # process
+        if method in ['binary', 'binarize', 'binarizer']: # not column wise
+            return data.transform(Binarizer, key=key, **kwargs)
         for column in columns:
             if method in ['standard', 'std']:
                 if has_split:
@@ -448,10 +454,10 @@ class AutoData(pd.DataFrame):
         """
         return self.encoding(**kwargs)
 
-    def encoding(self, method='label', key='categorical', target=None, split=True):
+    def encoding(self, method='label', key='categorical', target=None, split=True, **kwargs):
         """ Encode (categorical) variables.
 
-            :param method: 'none', 'label', 'one-hot', 'rare-one-hot', 'target', 'likelihood', 'count', 'probability'
+            :param method: 'none', 'label', 'one-hot', 'rare-one-hot', 'target', 'likelihood', 'count', 'probability', 'binarize'
             :param key: Subset of data to encode. Put to None for all columns. 'categorical' by default.
             :param target: Target column name (target encoding).
             :param coeff: Coefficient defining rare values (rare one-hot encoding).
@@ -466,6 +472,8 @@ class AutoData(pd.DataFrame):
             train = data.get_data('train')
             test = data.get_data('test')
         # process
+        if method in ['binary', 'binarize', 'binarizer']: # not column wise
+            return data.transform(Binarizer, key=key, **kwargs)
         for column in columns:
             if method in ['none', 'drop'] or method is None:
                 data = encoding.none(data, column)
@@ -503,13 +511,14 @@ class AutoData(pd.DataFrame):
                 raise Exception('Unknow encoding method: {}'.format(method))
         if has_split:
             data = from_train_test(train, test)
-        if encoding != 'label':
+        if encoding not in ['label', 'count']:
             data.flush_index() # update columns indexes for encoding that change number of columns
         return data
 
     def pca(self, key=None, return_param=False, model=None, verbose=False, **kwargs):
         """ Compute Principal Components Analysis.
             Use kwargs for additional PCA parameters (cf. sklearn doc).
+            /!\ WARNING: redundancy with 'transform' method.
 
             :param key: Indexes key to select data.
             :param return_param: If True, returns a tuple (X, pca) to store PCA parameters and apply them later.
@@ -520,7 +529,6 @@ class AutoData(pd.DataFrame):
         """
         data = self.copy()
         indexes = data.indexes
-        rows, columns = data.get_index(key)
         # compute PCA and copy indexes
         if return_param:
             data, pca = reduction.pca(data, key=key, return_param=return_param, model=model, verbose=verbose, **kwargs)
@@ -564,7 +572,7 @@ class AutoData(pd.DataFrame):
     def reduction(self, method='pca', key=None, verbose=False, **kwargs):
         """ Dimensionality reduction.
 
-            :param method: 'pca', 'lda', 'tsne' or 'hashing'
+            :param method: 'pca', 'lda', 'tsne', 'hashing', 'factor', 'random'
         """
         data = self.get_data(key)
         if method == 'pca':
@@ -575,9 +583,42 @@ class AutoData(pd.DataFrame):
             data = data.lda(key=key, verbose=verbose, **kwargs)
         elif method in ['hashing', 'feature_hashing', 'feature-hashing']:
             data = AutoData(reduction.feature_hashing(data, key=key, **kwargs))
+        elif method in ['factor', 'factor-analysis', 'factor_analysis']:
+            data = data.transform(FactorAnalysis, key=key, **kwargs)
+        elif method in ['random_projection', 'random', 'gaussian_random_projection']:
+            data = data.transform(GaussianRandomProjection, key=key, **kwargs)
         else:
             raise Exception('Unknown dimensionality reduction method: {}'.format(method))
         return data
+
+    def transform(self, model, key=None, return_param=False, **kwargs):
+        """ General method to apply a transformation on data.
+            It can be normalization, dimensionality reduction, etc.
+            You can use kwargs for additional parameters of the transformer.
+
+            :param model: The transformer. It must have 'fit' and 'transform' methods.
+                          If it is an object instead of a class, model is considered to be an already fitted transformer.
+            :param return_param: If true, returns the fitted transformer.
+        """
+        data = self.copy()
+        indexes = data.indexes
+        columns = data.columns
+        try: # initialize object
+            transformer = model(**kwargs)
+            transformer.fit(data)
+        except TypeError: # object not callable, probably already declared
+            transformer = model
+        data = transformer.transform(data)
+        try:
+            data = AutoData(data, indexes=indexes, columns=columns)
+        except: # not the same number of columns
+            data = AutoData(data, indexes=indexes)
+            data.flush_index() # update columns index after dimensionality change
+        data.get_types() # need to compute the types
+        if return_param:
+            return data, transformer
+        else:
+            return data
 
     ## 3. ###################### VISUALIZATION #######################
 
@@ -667,7 +708,7 @@ class AutoData(pd.DataFrame):
             raise Exception('Unknown distance metric: {}'.format(method))
 
     def generate(self, method=None):
-        """ Fit a generator and generate data with default parameters.
+        """ Fit a generator and generate data with default/kwargs parameters.
             TODO
 
             :param method: ANM, GAN, VAE, Copula, etc.

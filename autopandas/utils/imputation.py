@@ -1,5 +1,7 @@
 # Functions for missing data imputation
 
+# TODO: add more complex methods (e.g. using predictive modeling)
+
 def mean(data, column):
     """ Replace missing values by the mean of the column.
 
