@@ -141,6 +141,12 @@ class AutoData(pd.DataFrame):
         data.indexes = self.indexes.copy()
         return data
 
+    def __call__(self, *args, **kwargs):
+        """ Calling the AutoData object is equivalent to call the get_data method.
+            e.g. data('y') is an alias for data.get_data('y').
+        """
+        return self.get_data(*args, **kwargs)
+
     def to_csv(self, *args, **kwargs):
         """ Write data into a CSV file.
             Index is not written by default.
