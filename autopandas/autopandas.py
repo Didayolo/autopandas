@@ -251,6 +251,11 @@ class AutoData(pd.DataFrame):
 
     ##################################################################
     # DESCRIPTORS
+    def task(self):
+        """ Alias for get_task method.
+            Return 'regression' or 'classification'.
+        """
+        return self.get_task()
     def ratio(self, key=None):
         """ Dataset ratio: (dimension / number of examples).
         """

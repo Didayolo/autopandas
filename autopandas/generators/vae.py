@@ -2,6 +2,7 @@
 # Inspired from: http://louistiao.me/posts/implementing-variational-autoencoders-in-keras-beyond-the-quickstart-tutorial/
 
 # Imports
+from .autoencoder import AE, _nll, _mse, _binary_crossentropy
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -9,13 +10,8 @@ from scipy.stats import norm
 from keras import backend as K
 from keras.layers import Input, Dense, Lambda, Layer, Add, Multiply
 from keras.models import Model, Sequential
+from keras.losses import mse, binary_crossentropy
 import autopandas
-
-def nll(y_true, y_pred):
-    """ Negative log likelihood (Bernoulli). """
-    # keras.losses.binary_crossentropy gives the mean
-    # over the last axis. we require the sum
-    return K.sum(K.binary_crossentropy(y_true, y_pred), axis=-1)
 
 class KLDivergenceLayer(Layer):
     """ Identity transform layer that adds KL divergence
@@ -33,11 +29,11 @@ class KLDivergenceLayer(Layer):
         self.add_loss(K.mean(kl_batch), inputs=inputs)
         return inputs
 
-class VAE():
-    def __init__(self, original_dim, layers=[], latent_dim=2, epsilon_std=1.0):
+class VAE(AE):
+    def __init__(self, input_dim, layers=[], latent_dim=2, epsilon_std=1.0, loss='nll', optimizer='rmsprop'):
         """ Variational Autoencoder.
 
-            :param original_dim: Input/output size.
+            :param input_dim: Input/output size.
             :param layers: Dimension of intermediate layers (encoder and decoder).
                                      It can be:
                                      - an integer (one intermediate layer)
@@ -56,10 +52,10 @@ class VAE():
             for layer_dim in reversed(layers[:-1]):
                 decoder.add(Dense(layer_dim, activation='relu'))
         # else, no layers between input and latent space
-        decoder.add(Dense(original_dim, activation='sigmoid'))
+        decoder.add(Dense(input_dim, activation='sigmoid'))
 
         # encoder architecture
-        x = Input(shape=(original_dim,))
+        x = Input(shape=(input_dim,))
         if len(layers) > 0:
             h = Dense(layers[0], activation='relu')(x)
             for layer_dim in layers[1:]:
@@ -80,44 +76,24 @@ class VAE():
 
         x_pred = decoder(z)
 
-        vae = Model([x, eps], x_pred)
+        autoencoder = Model([x, eps], x_pred)
         encoder = Model(x, z_mu)
-        vae.compile(optimizer='rmsprop', loss=nll)
 
-        self.original_dim = original_dim
-        self.latent_dim = latent_dim
-        self.vae = vae
+        # loss function
+        if loss == 'nll':
+            loss_function = _nll
+        elif loss == 'mse':
+            loss_function = _mse
+        else:
+            loss_function = _binary_crossentropy
+        autoencoder.compile(optimizer=optimizer, loss=loss_function)
+
+        self.autoencoder = autoencoder
         self.encoder = encoder
         self.decoder = decoder
+        # attributes
+        self.input_dim = input_dim
+        self.latent_dim = latent_dim
         # for data frame indexes
         self.columns = None
         self.indexes = None
-
-    def get_vae(self):
-        return self.vae
-
-    def get_encoder(self):
-        return self.encoder
-
-    def get_decoder(self):
-        return self.decoder
-
-    def fit(self, X, **kwargs):
-        if isinstance(X, pd.DataFrame):
-            self.columns = X.columns
-            if isinstance(X, autopandas.AutoData):
-                self.indexes = X.indexes
-            X = X.as_matrix()
-        return self.vae.fit(X, X, **kwargs)
-
-    def sample(self, n=100, loc=0, scale=1):
-        """ :param scale: Standard deviation of gaussian distribution prior.
-        """
-        randoms = np.array([np.random.normal(loc, scale, self.latent_dim) for _ in range(n)])
-        decoded = self.decoder.predict(randoms)
-        decoded = autopandas.AutoData(decoded)
-        if self.columns is not None:
-            decoded.columns = self.columns
-        if self.indexes is not None:
-            decoded.indexes = self.indexes
-        return decoded

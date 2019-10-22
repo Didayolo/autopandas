@@ -1,10 +1,8 @@
 # Benchmark Functions
 
 import numpy as np
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import classification_report
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import accuracy_score, r2_score, classification_report
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from autosklearn.classification import AutoSklearnClassifier
 from autosklearn.regression import AutoSklearnRegressor
 
@@ -30,8 +28,6 @@ def score(data, model=None, metric=None, method='baseline', fit=True, test=None,
     """
     if 'y' not in data.indexes:
         raise Exception('No class defined. Please use set_class method before calling score.')
-    if metric is None:
-        metric = accuracy_score
     if model is None:
         # Select model
         if method == 'baseline':
@@ -46,8 +42,12 @@ def score(data, model=None, metric=None, method='baseline', fit=True, test=None,
         task = data.get_task()
         if  task == 'classification':
             model = clf
+            if metric is None:
+                metric = accuracy_score
         elif task == 'regression':
             model = reg
+            if metric is None:
+                metric = r2_score
         else:
             raise Exception('Unknown task: {}.'.format(task))
     if test is not None: # test set is defined

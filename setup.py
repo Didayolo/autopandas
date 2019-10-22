@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setup(
      name='autopandas',
-     version='0.3.8',
+     version='0.3.9',
      author="Adrien Pavao",
      author_email="adrien.pavao@gmail.com",
      description="Process, visualize and use data easily.",

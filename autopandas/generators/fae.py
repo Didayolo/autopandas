@@ -1,6 +1,7 @@
-# Fractal Variational Autoencoder
+# Fractal Autoencoder
 
-from .vae import VAE, nll
+from .autoencoder import AE, _nll, _mse, _binary_crossentropy
+from .vae import VAE
 from keras import Input
 from keras.models import Model, Sequential
 import autopandas
@@ -10,9 +11,10 @@ import numpy as np
 def merge(model1, model2):
     return model2(model1)
 
-class FVAE(VAE):
-    def __init__(self, layers):
-        """ Variational Autoencoder.
+class FAE(AE):
+    def __init__(self, layers, normalization=False, **kwargs):
+        """ Fractal Autoencoder.
+            AE with submodel training.
 
             :param layers: Dimension list of layers including input, intermediate (at least one) and latent layer.
         """
@@ -20,7 +22,10 @@ class FVAE(VAE):
         # create smaller models
         self.models = []
         for i in range(len(layers)-1):
-            submodel = VAE(layers[i], latent_dim=layers[i+1])
+            if i == len(layers) - 2: # last submodel
+                submodel = VAE(layers[i], latent_dim=layers[i+1], **kwargs)
+            else:
+                submodel = AE(layers[i], latent_dim=layers[i+1], **kwargs)
             self.models.append(submodel)
         # TODO ########
         # merge encoders
@@ -35,26 +40,51 @@ class FVAE(VAE):
         #    decoder = merge(decoder, self.models[i-1].get_decoder())
         #self.encoder = encoder
         #self.decoder = decoder
-        #self.vae = None#merge(self.encoder, self.decoder) # complete model
+        #self.autoencoder = None#merge(self.encoder, self.decoder) # complete model
         # for data frame indexes
-        #vae.compile(optimizer='rmsprop', loss=nll)
+        #autoencoder.compile(optimizer='rmsprop', loss=_nll)
         ###############
+        # normalization
+        self.normalization = normalization
+        self.mins = None
+        self.maxs = None
+        # autopandas
         self.columns = None
         self.indexes = None
 
-    def get_vae(self):
-        return self.vae
+    #def get_autoencoder(self):
+    #    return self.autoencoder
 
-    def get_encoder(self):
-        return self.encoder
+    #def get_encoder(self):
+    #    return self.encoder
 
-    def get_decoder(self):
-        return self.decoder
+    #def get_decoder(self):
+    #    return self.decoder
+
+    def reset_normalization(self):
+        if self.normalization:
+            self.mins = []
+            self.maxs = []
+        else:
+            self.mins = None
+            self.maxs = None
+
+    def normalize(self, X, i=None):
+        # TODO autopandas normalize
+        if self.normalization:
+            if i is None: # fit
+                self.mins.append(X.min())
+                self.maxs.append(X.max())
+                i = -1
+            return (X - self.mins[i]) / (self.maxs[i] - self.mins[i]) # for nll loss
+        else:
+            return X
 
     def fit(self, X, epochs=10, validation_data=None, **kwargs):
         # epochs is an integer or a list with the same size as self.models
         # validation_data is a tuple (x_test, x_test)
         # fit each sub-model
+        self.reset_normalization()
         if isinstance(X, pd.DataFrame):
             self.columns = X.columns
             if isinstance(X, autopandas.AutoData):
@@ -65,22 +95,25 @@ class FVAE(VAE):
             print('Input shape: {}'.format(X.shape))
             if not isinstance(epochs, int): # different epochs number for each model
                 ep = epochs[i]
-            model.vae.fit(X, X, epochs=ep, validation_data=validation_data, **kwargs) # train
+            model.autoencoder.fit(X, X, epochs=ep, validation_data=validation_data, **kwargs) # train
             X = model.get_encoder().predict(X) # transform data for next submodel
-            X = (X + X.min()) / X.max() # for test purpose
+            X = self.normalize(X)
             # update validation data
             if validation_data is not None:
                 X_test = model.get_encoder().predict(validation_data[0])
+                X_test = self.normalize(X_test)
                 validation_data = (X_test, X_test)
 
     def encode(self, X):
-        for model in self.models:
-            X = model.get_encoder().predict(X)
+        for i in range(len(self.models)):
+            X = self.models[i].get_encoder().predict(X)
+            X = self.normalize(X, i)
         return X
 
     def decode(self, X):
         for i in range(len(self.models)-1, -1, -1):
             X = self.models[i].get_decoder().predict(X)
+            X = self.normalize(X, i)
         return X
 
     def autoencode(self, X):
