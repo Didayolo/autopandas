@@ -4,6 +4,7 @@
 from .artificial import Artificial
 from .copycat import Copycat
 from .vae import VAE
+from .fvae import FVAE
 from .anm import ANM
 from .copula import Copula
 from .gmm import GMM

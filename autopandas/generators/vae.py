@@ -34,35 +34,35 @@ class KLDivergenceLayer(Layer):
         return inputs
 
 class VAE():
-    def __init__(self, original_dim, intermediate_dim=256, latent_dim=2, epsilon_std=1.0):
+    def __init__(self, original_dim, layers=[], latent_dim=2, epsilon_std=1.0):
         """ Variational Autoencoder.
 
             :param original_dim: Input/output size.
-            :param intermediate_dim: Dimension of intermediate layers (encoder and decoder).
+            :param layers: Dimension of intermediate layers (encoder and decoder).
                                      It can be:
                                      - an integer (one intermediate layer)
                                      - a list of integers (several intermediate layers)
             :param latent_dim: Dimension of latent space layer.
             :param espilon_std: Standard deviation of gaussian distribution prior.
         """
-        if isinstance(intermediate_dim, int): # 1 intermediate layers
-            intermediate_dim = [intermediate_dim]
-        
+        if isinstance(layers, int): # 1 intermediate layers
+            layers = [layers]
+
         # decoder architecture
         decoder = Sequential()
-        if len(intermediate_dim) > 0: # 1 or more intermediate layers
+        if len(layers) > 0: # 1 or more intermediate layers
             # in the decoder we arrange layers in the opposite order compared to the encoder
-            decoder.add(Dense(intermediate_dim[-1], input_dim=latent_dim, activation='relu'))
-            for layer_dim in reversed(intermediate_dim[:-1]):
+            decoder.add(Dense(layers[-1], input_dim=latent_dim, activation='relu'))
+            for layer_dim in reversed(layers[:-1]):
                 decoder.add(Dense(layer_dim, activation='relu'))
         # else, no layers between input and latent space
         decoder.add(Dense(original_dim, activation='sigmoid'))
 
         # encoder architecture
         x = Input(shape=(original_dim,))
-        if len(intermediate_dim) > 0:
-            h = Dense(intermediate_dim[0], activation='relu')(x)
-            for layer_dim in intermediate_dim[1:]:
+        if len(layers) > 0:
+            h = Dense(layers[0], activation='relu')(x)
+            for layer_dim in layers[1:]:
                 h = Dense(layer_dim, activation='relu')(h)
         else:
             h = x
@@ -80,7 +80,7 @@ class VAE():
 
         x_pred = decoder(z)
 
-        vae = Model(inputs=[x, eps], outputs=x_pred)
+        vae = Model([x, eps], x_pred)
         encoder = Model(x, z_mu)
         vae.compile(optimizer='rmsprop', loss=nll)
 
@@ -111,6 +111,8 @@ class VAE():
         return self.vae.fit(X, X, **kwargs)
 
     def sample(self, n=100, loc=0, scale=1):
+        """ :param scale: Standard deviation of gaussian distribution prior.
+        """
         randoms = np.array([np.random.normal(loc, scale, self.latent_dim) for _ in range(n)])
         decoded = self.decoder.predict(randoms)
         decoded = autopandas.AutoData(decoded)
