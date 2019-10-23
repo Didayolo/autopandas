@@ -29,15 +29,15 @@ class FAE(AE):
             self.models.append(submodel)
         # TODO ########
         # merge encoders
-        #encoder = self.models[0].get_encoder() # normal loop
+        #encoder = self.models[0].encoder # normal loop
         #encoder = encoder()(Input(shape=encoder.layers[0].input_shape))
         #for i in range(len(self.models)-1):
-            #encoder = merge(encoder, self.models[i+1].get_encoder())
+            #encoder = merge(encoder, self.models[i+1].encoder)
         # merge decoders
-        #decoder = self.models[-1].get_decoder() # backward loop
+        #decoder = self.models[-1].decoder # backward loop
         #decoder = decoder()(Input(shape=decoder.layers[0].input_shape))
         #for i in range(len(self.models)-2, -1, -1):
-        #    decoder = merge(decoder, self.models[i-1].get_decoder())
+        #    decoder = merge(decoder, self.models[i-1].decoder)
         #self.encoder = encoder
         #self.decoder = decoder
         #self.autoencoder = None#merge(self.encoder, self.decoder) # complete model
@@ -51,15 +51,6 @@ class FAE(AE):
         # autopandas
         self.columns = None
         self.indexes = None
-
-    #def get_autoencoder(self):
-    #    return self.autoencoder
-
-    #def get_encoder(self):
-    #    return self.encoder
-
-    #def get_decoder(self):
-    #    return self.decoder
 
     def reset_normalization(self):
         if self.normalization:
@@ -96,23 +87,23 @@ class FAE(AE):
             if not isinstance(epochs, int): # different epochs number for each model
                 ep = epochs[i]
             model.autoencoder.fit(X, X, epochs=ep, validation_data=validation_data, **kwargs) # train
-            X = model.get_encoder().predict(X) # transform data for next submodel
+            X = model.encoder.predict(X) # transform data for next submodel
             X = self.normalize(X)
             # update validation data
             if validation_data is not None:
-                X_test = model.get_encoder().predict(validation_data[0])
+                X_test = model.encoder.predict(validation_data[0])
                 X_test = self.normalize(X_test)
                 validation_data = (X_test, X_test)
 
     def encode(self, X):
         for i in range(len(self.models)):
-            X = self.models[i].get_encoder().predict(X)
+            X = self.models[i].encoder.predict(X)
             X = self.normalize(X, i)
         return X
 
     def decode(self, X):
         for i in range(len(self.models)-1, -1, -1):
-            X = self.models[i].get_decoder().predict(X)
+            X = self.models[i].decoder.predict(X)
             X = self.normalize(X, i)
         return X
 

@@ -15,7 +15,7 @@ import time
 import sys, os
 import getopt
 
-def plot(data, key=None, ad=None, c=None, save=None, names=None, **kwargs):
+def plot(data, key=None, ad=None, c=None, save=None, names=None, cmap='viridis', **kwargs):
     """ Plot AutoData frame.
         * Distribution plot for 1D data
         * Scatter plot for 2D data
@@ -28,6 +28,8 @@ def plot(data, key=None, ad=None, c=None, save=None, names=None, **kwargs):
         :param c: Sequence of color specifications of length n (e.g. data.get_data('y'))
         :param save: Path/filename to save figure (if not None)
     """
+    if c is None:
+        cmap = None
     if names is None:
         names = ['data 1', 'data 2']
     data = data.get_data(key)
@@ -48,7 +50,7 @@ def plot(data, key=None, ad=None, c=None, save=None, names=None, **kwargs):
                 title = c.columns[0]
                 c = list(c[title])
             fig, ax = plt.subplots()
-            scatter = ax.scatter(data[data.columns[0]], data[data.columns[1]], c=c, alpha=.4, s=3**2, cmap='viridis')
+            scatter = ax.scatter(data[data.columns[0]], data[data.columns[1]], c=c, alpha=.4, s=3**2, cmap=cmap)
             legend = ax.legend(*scatter.legend_elements(), loc='center left', bbox_to_anchor=(1, 0.5), title=title)
             plt.show()
         else: # Not 2D plot
