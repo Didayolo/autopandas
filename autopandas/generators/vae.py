@@ -2,7 +2,7 @@
 # Inspired from: http://louistiao.me/posts/implementing-variational-autoencoders-in-keras-beyond-the-quickstart-tutorial/
 
 # Imports
-from .autoencoder import AE, _nll, _mse, _binary_crossentropy
+from .autoencoder import AE
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -52,17 +52,10 @@ class VAE(AE):
         # for data frame indexes
         self.columns = None
         self.indexes = None
+        # loss function
+        loss_function = self.init_loss(loss=loss)
         # init architecture
         autoencoder, encoder, decoder = self.init_model(architecture=architecture)
-        # loss function
-        if loss == 'nll':
-            loss_function = _nll
-        elif loss == 'mse':
-            loss_function = _mse
-        elif loss == 'binary_crossentropy':
-            loss_function = _binary_crossentropy
-        else:
-            raise Exception('Unknown loss name: {}'.format(loss))
         autoencoder.compile(optimizer=optimizer, loss=loss_function)
         self.autoencoder = autoencoder
         self.encoder = encoder

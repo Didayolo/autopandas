@@ -45,19 +45,25 @@ class AE():
         # for data frame indexes
         self.columns = None
         self.indexes = None
+        # loss function
+        loss_function = self.init_loss(loss=loss)
         # init architecture
         autoencoder, encoder, decoder = self.init_model(architecture=architecture)
-        # loss function
-        if loss == 'nll':
-            loss_function = _nll
-        elif loss == 'mse':
-            loss_function = _mse
-        else:
-            loss_function = _binary_crossentropy
         autoencoder.compile(optimizer=optimizer, loss=loss_function)
         self.autoencoder = autoencoder
         self.encoder = encoder
         self.decoder = decoder
+
+    def init_loss(self, loss='nll'):
+        if loss == 'nll':
+            loss_function = _nll
+        elif loss == 'mse':
+            loss_function = _mse
+        elif loss == 'binary_crossentropy':
+            loss_function = _binary_crossentropy
+        else:
+            raise Exception('Unknown loss name: {}'.format(loss))
+        return loss_function
 
     def init_model(self, architecture='fully'):
         """ :param architecture: 'fully', 'cnn'
