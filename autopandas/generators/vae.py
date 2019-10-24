@@ -2,15 +2,15 @@
 # Inspired from: http://louistiao.me/posts/implementing-variational-autoencoders-in-keras-beyond-the-quickstart-tutorial/
 
 # Imports
+from warnings import warn
 from .autoencoder import AE
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.stats import norm
-from keras import backend as K
-from keras.layers import Input, Dense, Lambda, Layer, Add, Multiply, Conv2D, MaxPooling2D, UpSampling2D, Flatten, Reshape, Dropout
-from keras.models import Model, Sequential
-from keras.losses import mse, binary_crossentropy
+from tensorflow.keras import backend as K
+from tensorflow.keras.layers import Input, Dense, Lambda, Layer, Add, Multiply, Conv2D, MaxPooling2D, UpSampling2D, Flatten, Reshape, Dropout
+from tensorflow.keras.models import Model, Sequential
 import autopandas
 
 class KLDivergenceLayer(Layer):
@@ -66,27 +66,24 @@ class VAE(AE):
         """
         # encoder architecture
         x = Input(shape=(self.input_dim,))
-        if len(self.layers) > 0:
-            h = Dense(self.layers[0], activation='relu')(x)
-            for layer_dim in self.layers[1:]:
-                h = Dense(layer_dim, activation='relu')(h)
-        else:
-            h = x
+        h = x
+        for layer_dim in self.layers:
+            h = Dense(layer_dim, activation='relu')(h)
 
         # decoder architecture
-        decoder = Sequential()
-        if len(self.layers) > 0: # 1 or more intermediate layers
-            # in the decoder we arrange layers in the opposite order compared to the encoder
-            decoder.add(Dense(self.layers[-1], input_dim=self.latent_dim, activation='relu'))
-            for layer_dim in reversed(self.layers[:-1]):
-                decoder.add(Dense(layer_dim, activation='relu'))
-        # else, no layers between input and latent space
-        decoder.add(Dense(self.input_dim, activation='sigmoid'))
+        latent_input = Input(shape=(self.latent_dim,))
+        decoder = latent_input
+        # in the decoder we arrange layers in the opposite order compared to the encoder
+        for layer_dim in reversed(self.layers):
+            decoder = Dense(layer_dim, activation='relu')(decoder)
+        decoder = Dense(self.input_dim, activation='sigmoid')(decoder)
+        decoder = Model(latent_input, decoder)
 
-        # sampling
+        # variational layer
         z_mu = Dense(self.latent_dim)(h)
         z_log_var = Dense(self.latent_dim)(h)
         z_mu, z_log_var = KLDivergenceLayer()([z_mu, z_log_var])
+        # sampling
         z_sigma = Lambda(lambda t: K.exp(.5*t))(z_log_var)
         eps = Input(tensor=K.random_normal(stddev=self.epsilon_std,
                                            shape=(K.shape(x)[0], self.latent_dim)))
@@ -97,46 +94,41 @@ class VAE(AE):
         encoder = Model(x, z_mu)
         return autoencoder, encoder, decoder
 
-    def _init_model_cnn(self):
+    def _init_model_cnn(self, kernel=(3, 3), pool=(2, 2), strides=(2, 2)):
         """ Initialize CNN architecture.
         """
-        print('WARNING: CNN architecture is currently hard-coded for MNIST dataset.')
-        kernel = (3, 3)
-        pool = (2, 2)
-        strides = (2, 2)
-
         # encoder architecture
         x = Input(shape=self.input_dim)
-        h = Conv2D(32, kernel, activation='relu', padding='same')(x)
-        h = MaxPooling2D(pool, padding='same')(h)
-        h = Conv2D(8, kernel, activation='relu', padding='same')(h)
-        h = MaxPooling2D(pool, padding='same')(h)
-
-        # flatten encoding for visualization (TODO)
+        h = x
+        for layer_dim in self.layers:
+            h = Conv2D(layer_dim, kernel, activation='relu', padding='same')(h)
+            h = MaxPooling2D(pool, padding='same')(h)
+        new_shape = h.shape[1:]
         h = Flatten()(h)
-        self.latent_dim = 7*7*8
-
-        # decoder architecture
-        latent_input = Input(shape=(self.latent_dim,))
-        decoder = latent_input
-        decoder = Reshape((7, 7, 8))(decoder)
-        decoder = Conv2D(8, kernel, activation='relu', padding='same')(decoder)
-        decoder = UpSampling2D(pool)(decoder)
-        decoder = Conv2D(32, kernel, activation='relu', padding='same')(decoder)
-        decoder = UpSampling2D(pool)(decoder)
-        decoder = Conv2D(1, kernel, activation='sigmoid', padding='same')(decoder)
-
-        # sampling
+        flatten_dim = h.shape[1]
+        # variational layer
         z_mu = Dense(self.latent_dim)(h)
         z_log_var = Dense(self.latent_dim)(h)
         z_mu, z_log_var = KLDivergenceLayer()([z_mu, z_log_var])
+
+        # decoder architecture
+        latent_input = Input(shape=(self.latent_dim,))
+        decoder = Dense(flatten_dim)(latent_input)
+        decoder = Reshape(new_shape)(decoder)
+        # in the decoder we arrange layers in the opposite order compared to the encoder
+        for layer_dim in reversed(self.layers):
+            decoder = Conv2D(layer_dim, kernel, activation='relu', padding='same')(decoder)
+            decoder = UpSampling2D(pool)(decoder)
+        decoder = Conv2D(1, kernel, activation='sigmoid', padding='same')(decoder)
+        decoder = Model(latent_input, decoder) # define decoder
+
+        # sampling
         z_sigma = Lambda(lambda t: K.exp(.5*t))(z_log_var)
         eps = Input(tensor=K.random_normal(stddev=self.epsilon_std,
                                            shape=(K.shape(x)[0], self.latent_dim)))
         z_eps = Multiply()([z_sigma, eps])
         z = Add()([z_mu, z_eps])
-        decoder = Model(latent_input, decoder)
         x_pred = decoder(z)
         autoencoder = Model([x, eps], x_pred) # add decoder sequentially
-        encoder = Model(x, z_mu)
+        encoder = Model(x, z_mu) # define encoder
         return autoencoder, encoder, decoder

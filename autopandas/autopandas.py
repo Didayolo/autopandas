@@ -11,6 +11,7 @@ import os
 import sys
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.simplefilter(action='ignore', category=DeprecationWarning)
 import pandas as pd
 import random
 import numpy as np
@@ -26,7 +27,7 @@ from .utils import metric as metric
 from .utils import automl as automl
 from .utils import sdv as sdv
 # generators
-from .generators import generators as generators
+from .generators import *
 # some transformations
 from sklearn.preprocessing import Binarizer
 from sklearn.decomposition import FactorAnalysis

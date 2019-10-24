@@ -1,19 +1,20 @@
 # Autoencoder
 
 # Imports
+from warnings import warn
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.stats import norm
-from keras import backend as K
-from keras.layers import Input, Dense, Lambda, Layer, Add, Multiply, Conv2D, MaxPooling2D, UpSampling2D, Flatten, Reshape, Dropout
-from keras.models import Model, Sequential
-from keras.losses import mse, binary_crossentropy
+from tensorflow.keras import backend as K
+from tensorflow.keras.layers import Input, Dense, Lambda, Layer, Add, Multiply, Conv2D, MaxPooling2D, UpSampling2D, Flatten, Reshape, Dropout
+from tensorflow.keras.models import Model, Sequential
+from tensorflow.keras.losses import mse, binary_crossentropy
 import autopandas
 
 def _nll(y_true, y_pred):
     """ Negative log likelihood (Bernoulli). """
-    # keras.losses.binary_crossentropy gives the mean
+    # tf.keras.losses.binary_crossentropy gives the mean
     # over the last axis. we require the sum
     return K.sum(binary_crossentropy(y_true, y_pred), axis=-1)
 
@@ -105,13 +106,10 @@ class AE():
         decoder = Model(latent_input, decoder)
         return autoencoder, encoder, decoder
 
-    def _init_model_cnn(self):
+    def _init_model_cnn(self, kernel=(3, 3), pool=(2, 2), strides=(2, 2)):
         """ Initialize CNN architecture.
         """
-        print('WARNING: CNN architecture is currently hard-coded for MNIST dataset.')
-        kernel = (3, 3)
-        pool = (2, 2)
-        strides = (2, 2)
+        warn('CNN architecture is currently hard-coded for MNIST dataset.')
 
         # encoder architecture
         input = Input(shape=self.input_dim)
@@ -151,13 +149,16 @@ class AE():
     def get_decoder(self):
         return self.decoder
 
-    def fit(self, X, **kwargs):
+    def fit(self, X, X2=None, **kwargs):
         if isinstance(X, pd.DataFrame):
             self.columns = X.columns
             if isinstance(X, autopandas.AutoData):
                 self.indexes = X.indexes
             X = X.as_matrix()
-        return self.autoencoder.fit(X, X, **kwargs)
+        if X2 is None:
+            return self.autoencoder.fit(X, X, **kwargs)
+        else: # for robustness and being able to put two different distributions
+            return self.autoencoder.fit(X, X2, **kwargs)
 
     def sample(self, n=100, loc=0, scale=1):
         """ :param scale: Standard deviation of gaussian distribution prior.
@@ -171,7 +172,7 @@ class AE():
             if self.indexes is not None:
                 decoded.indexes = self.indexes
         except:
-            print('WARNING: Impossible to cast sampled data to autopandas.AutoData')
+            warn('Impossible to cast sampled data to autopandas.AutoData')
         return decoded
 
     def siamese_distance(self, x, y, **kwargs):

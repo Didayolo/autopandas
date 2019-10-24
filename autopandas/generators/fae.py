@@ -1,9 +1,9 @@
 # Fractal Autoencoder
 
-from .autoencoder import AE, _nll, _mse, _binary_crossentropy
+from .autoencoder import AE
 from .vae import VAE
-from keras import Input
-from keras.models import Model, Sequential
+from tensorflow.keras import Input
+from tensorflow.keras.models import Model, Sequential
 import autopandas
 import pandas as pd
 import numpy as np

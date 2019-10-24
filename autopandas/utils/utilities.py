@@ -4,6 +4,7 @@
 # Useful functions for computation and visualization of data descriptors
 
 # Imports
+from warnings import warn
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
@@ -292,7 +293,7 @@ def compute_mda(md, norm='manhattan', precision=0.2, threshold=0.2, area='simpso
     mini, maxi = 0, max(max(md), 1) # min(md)
 
     if (threshold <= 0) or (threshold >= 1):
-        print('Warning: threshold must be between 0 and 1.')
+        warn('threshold must be between 0 and 1.')
 
     # x axis
     x = np.arange(mini, maxi, precision)

@@ -1,5 +1,6 @@
 # Plot Functions
 
+from warnings import warn
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
@@ -46,7 +47,7 @@ def plot(data, key=None, ad=None, c=None, save=None, names=None, cmap='viridis',
             title = None
             if isinstance(c, pd.DataFrame): # c has to be a 1D sequence
                 if len(c.columns) > 1:
-                    print('WARNING: only the first column will be used for coloration.')
+                    warn('Only the first column will be used for coloration.')
                 title = c.columns[0]
                 c = list(c[title])
             fig, ax = plt.subplots()
@@ -58,7 +59,7 @@ def plot(data, key=None, ad=None, c=None, save=None, names=None, cmap='viridis',
     else: # 2 dataframes to plot
         if feat_num == 1 and ad.shape[1] == 1: # 1D distributions
             plt.scatter(data, ad) # plot together, or overlay distplots
-            print('WARNING: TODO legend and all.')
+            warn('TODO: legend and all.')
         elif feat_num == 2 and ad.shape[1] == 2: # if 2 features, overlay plots
             x1, y1, x2, y2 = data.iloc[:,0], data.iloc[:,1], ad.iloc[:,0], ad.iloc[:,1]
             plt.plot(x1, y1, 'o', alpha=.9, color='blue', label=names[0]) # lw=2, s=1, color='blue',
@@ -147,7 +148,7 @@ def compare_marginals(data1, data2, key=None, method='all', target=None, save=No
                 if method in ['corr', 'correlation']:
                     raise Excpetion('Cannot compute correlation with target. Please define a target column with target argument or define a class with set_class method.')
                 else:
-                    print('WARNING: Skipping "correlation with target" metric because there is no defined target.')
+                    warn('Skipping "correlation with target" metric because there is no defined target.')
                     skip_corr = True
         else:
             y1 = X1[target]
