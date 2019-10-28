@@ -30,7 +30,7 @@ class KLDivergenceLayer(Layer):
         return inputs
 
 class VAE(AE):
-    def __init__(self, input_dim, layers=[], latent_dim=2, architecture='fully', epsilon_std=1.0, loss='nll', optimizer='rmsprop'):
+    def __init__(self, input_dim, layers=[], latent_dim=2, architecture='fully', epsilon_std=1.0, loss='nll', optimizer='rmsprop', decoder_layers=None):
         """ Variational Autoencoder.
 
             :param input_dim: Input/output size.
@@ -41,12 +41,14 @@ class VAE(AE):
             :param latent_dim: Dimension of latent space layer.
             :param architecture: 'fully', 'cnn'.
             :param espilon_std: Standard deviation of gaussian distribution prior.
+            :param decoder_layers: Dimension of intermediate decoder layers for asymmetrical architectures.
         """
         if isinstance(layers, int): # 1 intermediate layers
             layers = [layers]
         # attributes
         self.input_dim = input_dim
         self.layers = layers
+        self.decoder_layers = decoder_layers or layers[::-1]
         self.latent_dim = latent_dim
         self.epsilon_std = epsilon_std
         # for data frame indexes
@@ -73,8 +75,7 @@ class VAE(AE):
         # decoder architecture
         latent_input = Input(shape=(self.latent_dim,))
         decoder = latent_input
-        # in the decoder we arrange layers in the opposite order compared to the encoder
-        for layer_dim in reversed(self.layers):
+        for layer_dim in self.decoder_layers:
             decoder = Dense(layer_dim, activation='relu')(decoder)
         decoder = Dense(self.input_dim, activation='sigmoid')(decoder)
         decoder = Model(latent_input, decoder)
@@ -94,9 +95,14 @@ class VAE(AE):
         encoder = Model(x, z_mu)
         return autoencoder, encoder, decoder
 
-    def _init_model_cnn(self, kernel=(3, 3), pool=(2, 2), strides=(2, 2)):
+    def _init_model_cnn(self, kernel=(3, 3), pool=(2, 2), strides=(2, 2), dense_layer=None):
         """ Initialize CNN architecture.
+
+            :param dense_layer: supplementary dense layer (in encoder and decoder) between convolution and latent space.
         """
+        warn('strides argument is currently not implemented.')
+        if self.layers != self.decoder_layers:
+            warn('self.layers is {} and self.decoder_layers is {}. Use asymmetric architecture with CNN wisely.'.format(self.layers, self.decoder_layers))
         # encoder architecture
         x = Input(shape=self.input_dim)
         h = x
@@ -106,6 +112,8 @@ class VAE(AE):
         new_shape = h.shape[1:]
         h = Flatten()(h)
         flatten_dim = h.shape[1]
+        if dense_layer is not None: # add dense layer
+            h = Dense(dense_layer)(h)
         # variational layer
         z_mu = Dense(self.latent_dim)(h)
         z_log_var = Dense(self.latent_dim)(h)
@@ -113,10 +121,13 @@ class VAE(AE):
 
         # decoder architecture
         latent_input = Input(shape=(self.latent_dim,))
-        decoder = Dense(flatten_dim)(latent_input)
+        if dense_layer is not None: # add dense layer
+            decoder = Dense(dense_layer)(latent_input)
+            decoder = Dense(flatten_dim)(decoder)
+        else:
+            decoder = Dense(flatten_dim)(latent_input)
         decoder = Reshape(new_shape)(decoder)
-        # in the decoder we arrange layers in the opposite order compared to the encoder
-        for layer_dim in reversed(self.layers):
+        for layer_dim in self.decoder_layers:
             decoder = Conv2D(layer_dim, kernel, activation='relu', padding='same')(decoder)
             decoder = UpSampling2D(pool)(decoder)
         decoder = Conv2D(1, kernel, activation='sigmoid', padding='same')(decoder)

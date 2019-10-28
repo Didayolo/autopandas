@@ -24,6 +24,8 @@ import itertools
 def distance(x, y, axis=None, norm='euclidean', method=None):
     """ Compute the distance between x and y (data points).
 
+        Default behaviour: flatten multi-dimensional arrays.
+
         :param x: Array-like, first point
         :param y: Array-like, second point
         :param axis: Axis of x along which to compute the vector norms.
@@ -32,13 +34,21 @@ def distance(x, y, axis=None, norm='euclidean', method=None):
         :return: Distance value
         :rtype: float
     """
+    if type(x) != type(y):
+        raise Exception('x type is {} and y type is {}. Please pass two arguments with the same type.'.format(type(x), type(y)))
     if method is not None: # Alias
         norm = method
     # if x and y are single values
-    if not isinstance(x, (list, np.ndarray)):
-        z = [x - y]
-    else:
+    if isinstance(x, np.ndarray):
+        if len(x.shape) > 1:
+            x = x.flatten()
+        if len(y.shape) > 1:
+            y = y.flatten()
         z = x - y
+    elif isinstance(x, list):
+        z = x - y
+    else:
+        z = [x - y]
     if norm == 'manhattan' or norm == 'l1':
         return np.linalg.norm(z, ord=1, axis=axis)
     elif norm == 'euclidean' or norm == 'l2':

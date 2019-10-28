@@ -9,7 +9,7 @@ from .gmm import GMM
 from .kde import KDE
 from .autoencoder import AE
 from .vae import VAE
-from .fae import FAE
+from .sae import SAE
 # TODO
 # GAN, WGAN, medGAN
 # SAM

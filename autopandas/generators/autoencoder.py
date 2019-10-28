@@ -25,8 +25,10 @@ def _binary_crossentropy(y_true, y_pred):
     return binary_crossentropy(y_true, y_pred) # to pass loss to compile function
 
 class AE():
-    def __init__(self, input_dim, layers=[], latent_dim=2, architecture='fully', loss='nll', optimizer='rmsprop'):
+    def __init__(self, input_dim, layers=[], latent_dim=2, architecture='fully', loss='nll', optimizer='rmsprop', decoder_layers=None):
         """ Autoencoder with fully connected layers.
+
+            Default behaviour: symmetric layers but no weight sharing.
 
             :param input_dim: Input/output size.
             :param layers: Dimension of intermediate layers (encoder and decoder).
@@ -36,12 +38,16 @@ class AE():
             :param latent_dim: Dimension of latent space layer.
             :param architecture: 'fully', 'cnn'.
             :param espilon_std: Standard deviation of gaussian distribution prior.
+            :param decoder_layers: Dimension of intermediate decoder layers for asymmetrical architectures.
         """
         if isinstance(layers, int): # 1 intermediate layers
             layers = [layers]
         # attributes
         self.input_dim = input_dim
         self.layers = layers
+        # only for asymmetrical architecture
+        # in the decoder we arrange layers in the opposite order compared to the encoder
+        self.decoder_layers = decoder_layers or layers[::-1]
         self.latent_dim = latent_dim
         # for data frame indexes
         self.columns = None
@@ -82,26 +88,21 @@ class AE():
         # encoder architecture
         input = Input(shape=(self.input_dim,))
         x = input
-        if len(self.layers) > 0:
-            x = Dense(self.layers[0], activation='relu')(x)
-            for layer_dim in self.layers[1:]:
-                x = Dense(layer_dim, activation='relu')(x)
+        for layer_dim in self.layers:
+            x = Dense(layer_dim, activation='relu')(x)
         x = Dense(self.latent_dim, activation='relu')(x)
         z = x
         # decoder architecture
-        if len(self.layers) > 0: # 1 or more intermediate layers
-            # in the decoder we arrange layers in the opposite order compared to the encoder
-            x = Dense(self.layers[-1], input_dim=self.latent_dim, activation='relu')(x)
-            for layer_dim in reversed(self.layers[:-1]):
-                x = Dense(layer_dim, activation='relu')(x)
-        # else, no layers between input and latent space
+        for layer_dim in self.decoder_layers:
+            #x = Dense(self.decoder_layers[0], input_dim=self.latent_dim, activation='relu')(x)
+            x = Dense(layer_dim, activation='relu')(x)
         x = Dense(self.input_dim, activation='sigmoid')(x)
         autoencoder = Model(input, x) # define autoencoder
         encoder = Model(input, z) # define encoder
         # define decoder
         latent_input = Input(shape=(self.latent_dim,))
         decoder = latent_input
-        for i in range((len(self.layers)+1)*-1, 0):
+        for i in range((len(self.decoder_layers)+1)*-1, 0):
             decoder = autoencoder.layers[i](decoder)
         decoder = Model(latent_input, decoder)
         return autoencoder, encoder, decoder
@@ -109,25 +110,26 @@ class AE():
     def _init_model_cnn(self, kernel=(3, 3), pool=(2, 2), strides=(2, 2)):
         """ Initialize CNN architecture.
         """
-        warn('CNN architecture is currently hard-coded for MNIST dataset.')
-
+        warn('strides argument is currently not implemented.')
+        if self.layers != self.decoder_layers:
+            warn('self.layers is {} and self.decoder_layers is {}. Use asymmetric architecture with CNN wisely.'.format(self.layers, self.decoder_layers))
         # encoder architecture
         input = Input(shape=self.input_dim)
         x = input
-        x = Conv2D(32, kernel, activation='relu', padding='same')(x)
-        x = MaxPooling2D(pool, padding='same')(x)
-        x = Conv2D(8, kernel, activation='relu', padding='same')(x)
-        x = MaxPooling2D(pool, padding='same')(x)
-        # flatten encoding for visualization
+        for layer_dim in self.layers:
+            x = Conv2D(layer_dim, kernel, activation='relu', padding='same')(x)
+            x = MaxPooling2D(pool, padding='same')(x)
+        # flatten encoding
+        new_shape = x.shape[1:]
         x = Flatten()(x)
+        flatten_dim = x.shape[1]
         z = x # latent space
-        self.latent_dim = 7*7*8
+        self.latent_dim = flatten_dim # currently no dense layers before and after latent space
         # decoder architecture
-        x = Reshape((7, 7, 8))(x)
-        x = Conv2D(8, kernel, activation='relu', padding='same')(x)
-        x = UpSampling2D(pool)(x)
-        x = Conv2D(32, kernel, activation='relu', padding='same')(x)
-        x = UpSampling2D(pool)(x)
+        x = Reshape(new_shape)(x)
+        for layer_dim in self.decoder_layers:
+            x = Conv2D(layer_dim, kernel, activation='relu', padding='same')(x)
+            x = UpSampling2D(pool)(x)
         x = Conv2D(1, kernel, activation='sigmoid', padding='same')(x)
 
         # define models
@@ -135,7 +137,7 @@ class AE():
         encoder = Model(input, z)
         latent_input = Input(shape=(self.latent_dim,))
         decoder = latent_input
-        for i in range(-6, 0):
+        for i in range((len(self.decoder_layers)*2+2)*-1, 0):
             decoder = autoencoder.layers[i](decoder)
         decoder = Model(latent_input, decoder)
         return autoencoder, encoder, decoder

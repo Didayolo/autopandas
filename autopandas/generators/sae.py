@@ -1,4 +1,4 @@
-# Fractal Autoencoder
+# Stacked Autoencoder (already exists)
 
 from .autoencoder import AE
 from .vae import VAE
@@ -11,9 +11,9 @@ import numpy as np
 def merge(model1, model2):
     return model2(model1)
 
-class FAE(AE):
+class SAE(AE):
     def __init__(self, layers, normalization=False, **kwargs):
-        """ Fractal Autoencoder.
+        """ Stacked Autoencoder.
             AE with submodel training.
 
             :param layers: Dimension list of layers including input, intermediate (at least one) and latent layer.
