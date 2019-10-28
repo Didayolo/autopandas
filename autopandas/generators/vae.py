@@ -101,7 +101,7 @@ class VAE(AE):
             :param dense_layer: supplementary dense layer (in encoder and decoder) between convolution and latent space.
         """
         warn('strides argument is currently not implemented.')
-        if self.layers != self.decoder_layers:
+        if self.layers != self.decoder_layers[::-1]:
             warn('self.layers is {} and self.decoder_layers is {}. Use asymmetric architecture with CNN wisely.'.format(self.layers, self.decoder_layers))
         # encoder architecture
         x = Input(shape=self.input_dim)

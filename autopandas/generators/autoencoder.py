@@ -28,7 +28,9 @@ class AE():
     def __init__(self, input_dim, layers=[], latent_dim=2, architecture='fully', loss='nll', optimizer='rmsprop', decoder_layers=None):
         """ Autoencoder with fully connected layers.
 
-            Default behaviour: symmetric layers but no weight sharing.
+            Default behaviour: Symmetric layers but no weight sharing.
+            Default behaviour: For CNN architecture, if latent_dim is None then there is no dense layers.
+                               The latent space dimension depends on the convolutional layers in this case.
 
             :param input_dim: Input/output size.
             :param layers: Dimension of intermediate layers (encoder and decoder).
@@ -110,8 +112,9 @@ class AE():
     def _init_model_cnn(self, kernel=(3, 3), pool=(2, 2), strides=(2, 2)):
         """ Initialize CNN architecture.
         """
+        bool = self.latent_dim is not None # if latent_dim is not defined then the latent space dim will depend on the convolutional layers
         warn('strides argument is currently not implemented.')
-        if self.layers != self.decoder_layers:
+        if self.layers != self.decoder_layers[::-1]:
             warn('self.layers is {} and self.decoder_layers is {}. Use asymmetric architecture with CNN wisely.'.format(self.layers, self.decoder_layers))
         # encoder architecture
         input = Input(shape=self.input_dim)
@@ -123,9 +126,14 @@ class AE():
         new_shape = x.shape[1:]
         x = Flatten()(x)
         flatten_dim = x.shape[1]
+        if bool:
+            x = Dense(self.latent_dim)(x) # dense layer to latent space
+        else:
+            self.latent_dim = flatten_dim # no dense layers before and after latent space
         z = x # latent space
-        self.latent_dim = flatten_dim # currently no dense layers before and after latent space
         # decoder architecture
+        if bool:
+            x = Dense(flatten_dim)(x) # inverse dense layer
         x = Reshape(new_shape)(x)
         for layer_dim in self.decoder_layers:
             x = Conv2D(layer_dim, kernel, activation='relu', padding='same')(x)
@@ -137,7 +145,10 @@ class AE():
         encoder = Model(input, z)
         latent_input = Input(shape=(self.latent_dim,))
         decoder = latent_input
-        for i in range((len(self.decoder_layers)*2+2)*-1, 0):
+        index = (len(self.decoder_layers)*2+2)*-1
+        if bool:
+            index -= 1 # one more layer
+        for i in range(index, 0):
             decoder = autoencoder.layers[i](decoder)
         decoder = Model(latent_input, decoder)
         return autoencoder, encoder, decoder
