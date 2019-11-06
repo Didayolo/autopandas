@@ -257,6 +257,23 @@ class AutoData(pd.DataFrame):
             Return 'regression' or 'classification'.
         """
         return self.get_task()
+
+    def input_size(self):
+        """ Number of features in X.
+        """
+        if self.has_class():
+            return self('X').shape[1]
+        else:
+            return self.shape[1]
+
+    def output_size(self):
+        """ Number of unique classes.
+        """
+        if self.has_class():
+            return int(self('y').nunique())
+        else:
+            raise Exception('No target defined. Please call set_class method first.')
+
     def ratio(self, key=None):
         """ Dataset ratio: (dimension / number of examples).
         """

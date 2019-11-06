@@ -20,6 +20,14 @@ autopandas.generators.artificial module
     :undoc-members:
     :show-inheritance:
 
+autopandas.generators.autoencoder module
+----------------------------------------
+
+.. automodule:: autopandas.generators.autoencoder
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 autopandas.generators.copula module
 -----------------------------------
 
@@ -36,14 +44,6 @@ autopandas.generators.copycat module
     :undoc-members:
     :show-inheritance:
 
-autopandas.generators.generators module
----------------------------------------
-
-.. automodule:: autopandas.generators.generators
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 autopandas.generators.gmm module
 --------------------------------
 
@@ -56,6 +56,14 @@ autopandas.generators.kde module
 --------------------------------
 
 .. automodule:: autopandas.generators.kde
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+autopandas.generators.sae module
+--------------------------------
+
+.. automodule:: autopandas.generators.sae
     :members:
     :undoc-members:
     :show-inheritance:
