@@ -344,6 +344,23 @@ class AutoData(pd.DataFrame):
     # Avoid data leakage during processing
     # train/test/valid split shuffle
     # Dimensionality reduction (method) (only on X)
+    
+    def process(self):
+        """ Alias for processing method.
+        """
+        return self.processing()
+        
+    def processing(self):
+        """ Do basic processings in order to quickly be able to use the dataset.
+            It is recommended to use the other processing methods (encoding, normalization) 
+            to use personalized parameters. This method is kept simple on purpose.
+            Steps:
+              1. Missing values imputation.
+              2. Label encoding for categorical variables.
+        """
+        data = self.imputation('most')
+        data = data.encoding('label', 'categorical')
+        return data
 
     def train_test_split(self,
                          test_size=0.3,
