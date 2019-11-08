@@ -10,7 +10,7 @@
 ### Get Started
 
 * `pip install autopandas`
-* [Notebook with examples](AutoPandas_workspace.ipynb)
+* [Notebook with examples](https://nbviewer.jupyter.org/github/Didayolo/autopandas/blob/master/AutoPandas_workspace.ipynb)
 * [Documentation](https://autopandas.readthedocs.io/en/latest/)
 
 
