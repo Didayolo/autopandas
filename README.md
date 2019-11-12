@@ -4,7 +4,7 @@
 
 [![Documentation Status](https://readthedocs.org/projects/autopandas/badge/?version=latest)](https://autopandas.readthedocs.io/en/latest/?badge=latest)
 
-![logo](logo_autodata.png)
+![logo](https://github.com/Didayolo/autopandas/blob/master/logo_autopandas.png)
 
 
 ### Get Started

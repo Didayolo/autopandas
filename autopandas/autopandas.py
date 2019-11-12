@@ -344,15 +344,15 @@ class AutoData(pd.DataFrame):
     # Avoid data leakage during processing
     # train/test/valid split shuffle
     # Dimensionality reduction (method) (only on X)
-    
+
     def process(self):
         """ Alias for processing method.
         """
         return self.processing()
-        
+
     def processing(self):
         """ Do basic processings in order to quickly be able to use the dataset.
-            It is recommended to use the other processing methods (encoding, normalization) 
+            It is recommended to use the other processing methods (encoding, normalization)
             to use personalized parameters. This method is kept simple on purpose.
             Steps:
               1. Missing values imputation.
@@ -366,14 +366,18 @@ class AutoData(pd.DataFrame):
                          test_size=0.3,
                          shuffle=True,
                          valid=False,
-                         valid_size=0.1):
+                         valid_size=0.1,
+                         train_size=None):
         """ Procedure doing the train/test split and store it into self.indexes.
 
             :param test_size: proportion of examples in test set.
             :param shuffle: whether to shuffle examples or not.
             :param valid: whether to do a train/valid/test split or not (not implemented yet).
             :param valid_size: proportion of example in validation set (not implemented yet).
+            :param train_size: kind of alias which define test_size (1 - train_size).
         """
+        if train_size: # TODO
+            test_size = 1 - train_size
         N = self.shape[0]
         index = list(range(N))
         if shuffle:
