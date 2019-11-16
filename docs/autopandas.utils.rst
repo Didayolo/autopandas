@@ -20,6 +20,14 @@ autopandas.utils.benchmark module
     :undoc-members:
     :show-inheritance:
 
+autopandas.utils.datasets module
+--------------------------------
+
+.. automodule:: autopandas.utils.datasets
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 autopandas.utils.encoding module
 --------------------------------
 
