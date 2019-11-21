@@ -270,7 +270,11 @@ class AutoData(pd.DataFrame):
         """ Number of unique classes.
         """
         if self.has_class():
-            return int(self('y').nunique())
+            nunique = self('y').nunique()
+            if len(self.indexes['y']) > 1: # multi-class
+                return list(nunique)
+            else:
+                return int(nunique)
         else:
             raise Exception('No target defined. Please call set_class method first.')
 

@@ -6,6 +6,10 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from autosklearn.classification import AutoSklearnClassifier
 from autosklearn.regression import AutoSklearnRegressor
 
+# TODO:
+# - Train error bars
+# - Test error bars
+
 def score(data, model=None, metric=None, method='baseline', fit=True, test=None, verbose=False):
     """ Benchmark, a.k.a. Utility.
 
