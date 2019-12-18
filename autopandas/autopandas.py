@@ -157,7 +157,7 @@ class AutoData(pd.DataFrame):
         else: # Do not write index column
             super(AutoData, self).to_csv(*args, **kwargs, index=False)
 
-    def to_automl(self, path, name='autodata'):
+    def to_automl(self, path='.', name='autodata'):
         """ Write files in AutoML format.
             AutoML format is ideal to create a Codalab competition.
 

@@ -27,7 +27,7 @@ def from_automl(path):
     data.indexes['train'] = [0]
     """
 
-def to_automl(data, path, name='autodata'):
+def to_automl(data, path='.', name='autodata'):
     """ Write files in AutoML format.
         AutoML format is ideal to create a Codalab competition.
 
