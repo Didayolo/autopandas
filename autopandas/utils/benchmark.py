@@ -3,8 +3,8 @@
 import numpy as np
 from sklearn.metrics import accuracy_score, r2_score, classification_report
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from autosklearn.classification import AutoSklearnClassifier
-from autosklearn.regression import AutoSklearnRegressor
+#from autosklearn.classification import AutoSklearnClassifier
+#from autosklearn.regression import AutoSklearnRegressor
 
 # TODO:
 # - Train error bars
@@ -38,8 +38,9 @@ def score(data, model=None, metric=None, method='baseline', fit=True, test=None,
             clf = RandomForestClassifier()
             reg = RandomForestRegressor()
         elif method in ['auto', 'autosklearn', 'automl', 'automatic']:
-            clf = AutoSklearnClassifier()
-            reg = AutoSklearnRegressor() # multi-ouput ??
+            raise Exception('autosklearn got removed from requirements. This method is currently not implemented.')
+            #clf = AutoSklearnClassifier()
+            #reg = AutoSklearnRegressor() # multi-ouput ??
         else:
             raise Exception('Unknown method: {}'.format(method))
         # Select task
