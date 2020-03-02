@@ -437,13 +437,18 @@ class AutoData(pd.DataFrame):
         """
         return self.imputation(**kwargs)
 
-    def imputation(self, method='most', key=None):
+    def imputation(self, method='most', key=None, model=None, split=True, fit=True):
         """ Impute missing values.
 
-            :param method: None, 'remove', 'most', 'mean', 'median'
+            :param method: None, 'remove', 'most', 'mean', 'median', 'infer'
+            :param model: Predictive model (in case of 'infer' method)
+            :param fit: If True, fit the model (in case of 'infer' method)
+            :param split: If False, do the processing on the whole frame without train/test split.
             :return: Data with imputed values.
             :rtype: AutoData
         """
+        if model is not None:
+            print('WARNING: "model" parameter is currently not supported.')
         data = self.copy()
         rows, columns = self.get_index(key) # get_index instead of get_data to modify wanted columns and keep others
         for column in columns:
@@ -455,6 +460,16 @@ class AutoData(pd.DataFrame):
                 data = imputation.mean(data, column)
             elif method == 'median':
                 data = imputation.median(data, column)
+            elif method == 'infer':
+                has_split = self.has_split() and split
+                if has_split: # can be more memory efficient
+                    train = data.get_data('train')
+                    test = data.get_data('test')
+                    train, model_fitted = imputation.infer(train, column, model=model, return_param=True, fit=fit)
+                    test = imputation.infer(test, column, model=model_fitted, return_param=False, fit=False)
+                    data = from_train_test(train, test)
+                else:
+                    data = imputation.infer(data, column, model=model, fit=fit)
             else:
                 raise Exception('Unknown imputation method: {}'.format(method))
         return data

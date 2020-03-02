@@ -4,6 +4,12 @@
 import pandas as pd
 import os
 
+def read_automl(path):
+    """ Alias for from_automl.
+        Read files in AutoML format.
+    """
+    return from_automl(path)
+
 def from_automl(path):
     """ Read files in AutoML format.
         TODO
