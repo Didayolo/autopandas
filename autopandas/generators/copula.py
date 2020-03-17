@@ -6,9 +6,11 @@ from sklearn.neighbors import KernelDensity
 import numpy as np
 import autopandas
 
-def vector_to_rank(x):
+def vector_to_rank(x, reverse=False):
     sort = np.sort(x)
     rank = LabelEncoder().fit_transform(sort) + 1
+    if reverse:
+        sort = np.flip(sort)
     rank_dict = dict(zip(sort, rank))
     return [rank_dict[i] for i in x]
 

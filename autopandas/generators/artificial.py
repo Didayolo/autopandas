@@ -12,7 +12,6 @@ class Artificial():
             Generate 2D classification datasets.
 
             :param method: 'moons', 'blobs' or 'circles'.
-
         """
         self.method = method
 

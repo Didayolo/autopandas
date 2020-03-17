@@ -758,6 +758,11 @@ class AutoData(pd.DataFrame):
         """
         return benchmark.score(self, model=model, metric=metric, method=method, test=test, fit=fit, verbose=verbose)
 
+    def score_error_bars(self, n=10, model=None, metric=None, method='baseline', test=None, fit=True, verbose=False):
+        """ Call score method several times (same parameters) and return mean and variance.
+        """
+        return benchmark.score_error_bars(self, n=n, model=model, metric=metric, method=method, test=test, fit=fit, verbose=verbose)
+
     # Distribution comparator
     def distance(self, data, method=None, **kwargs):
         """ Distance between two AutoData frames.
