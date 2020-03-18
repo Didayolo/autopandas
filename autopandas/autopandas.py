@@ -26,9 +26,11 @@ from .utils import benchmark as benchmark
 from .utils import metric as metric
 from .utils import automl as automl
 from .utils import sdv as sdv
-# generators
+# Generators
 from .generators import *
-# some transformations
+# Toy datasets
+from .data import datasets as datasets
+# Some transformations
 from sklearn.preprocessing import Binarizer
 from sklearn.decomposition import FactorAnalysis
 from sklearn.random_projection import GaussianRandomProjection

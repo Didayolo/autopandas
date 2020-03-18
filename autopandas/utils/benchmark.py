@@ -87,6 +87,16 @@ def score(data, model=None, metric=None, method='baseline', fit=True, test=None,
     if fit:
         model.fit(X_train, y_train)
     # Let's go!
+    score = correct_metric(metric, model, X_test, y_test, average=average)
+    if verbose:
+        print(model)
+        print(classification_report(y_test, y_pred))
+        print('Metric: {}'.format(metric))
+    return score
+
+def correct_metric(metric, model, X_test, y_test, average='weighted', multi_class='ovo'):
+    """ Try different configuration to be robust to all sklearn metrics.
+    """
     ### /!\ TODO: CLEAN CODE BELOW /!\ ###
     try:
         y_pred = model.predict_proba(X_test) # SOFT
@@ -110,8 +120,4 @@ def score(data, model=None, metric=None, method='baseline', fit=True, test=None,
                 except:
                     labels = np.unique(y_pred)
                     score = metric(y_test, y_pred, labels=labels)
-    if verbose:
-        print(model)
-        print(classification_report(y_test, y_pred))
-        print('Metric: {}'.format(metric))
     return score
