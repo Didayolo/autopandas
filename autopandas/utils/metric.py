@@ -2,6 +2,7 @@
 
 import numpy as np
 import scipy as sp
+import pandas as pd
 import random
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
@@ -166,20 +167,29 @@ def discriminant(data1, data2, model=None, metric=None, name1='Dataset 1', name2
     score = metric(y_test, model.predict(X_test))
     return score
 
-def distance_matrix(data1, data2, distance_func=None):
+def distance_matrix(data1, data2=None, distance_func=None, dtype=np.float32):
     """ Compute matrix with distances between each points (m_ij is distance between i and j).
         TODO: parallelization.
 
         :param data1: Distribution
-        :param data2: Distribution
+        :param data2: Distribution - if None, compute distance_matrix(data1, data1)
         :param distance_func: Distance metric function to use to compare data points. Euclidean distance by default.
     """
+    if data2 is None:
+        data2 = data1
+
+    # casting
+    if isinstance(data1, pd.DataFrame):
+        data1 = np.array(data1)
+    if isinstance(data2, pd.DataFrame):
+        data2 = np.array(data2)
+
     # distance metric between data points
     if distance_func is None:
         distance_func = distance
     len1, len2 = len(data1), len(data2) # handle len1 != len2 case?
 
-    distance_matrix = np.empty((len1, len2))
+    distance_matrix = np.empty((len1, len2), dtype=dtype)
     # compute the distances
     for i in range(len1):
         for j in range(len2):

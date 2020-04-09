@@ -26,6 +26,7 @@ from .utils import benchmark as benchmark
 from .utils import metric as metric
 from .utils import automl as automl
 from .utils import sdv as sdv
+from .utils import mdlp as mdlp
 # Generators
 from .generators import *
 # Toy datasets
@@ -86,6 +87,13 @@ def from_X_y(X, y):
     ad.set_indexes('X', X_index)
     ad.set_indexes('y', y_index)
     return ad
+
+def from_train_test_X_y(x_train, x_test, y_train, y_test):
+    """ Create an AutoData fram from x_train, x_test, y_train, y_test.
+    """
+    X = from_train_test(x_train, x_test)
+    y = from_train_test(y_train, y_test)
+    return from_X_y(X, y)
 
 def plot(ad1, ad2, **kwargs):
     """ Alias for double plot.
@@ -552,6 +560,8 @@ class AutoData(pd.DataFrame):
                 data = encoding.label(data, column)
             elif method in ['onehot', 'one_hot', 'one-hot']:
                 data = encoding.one_hot(data, column) # TODO: fix class behaviour
+            elif method in ['rank', 'ranking']:
+                data = encoding.rank(data, column, **kwargs)
             elif method == 'likelihood':
                 if has_split:
                     train, mapping = encoding.likelihood(train, column, return_param=True)
@@ -614,6 +624,33 @@ class AutoData(pd.DataFrame):
             return data, pca
         return data
 
+    def mdlp(self, key=None, return_param=False, model=None, verbose=False, **kwargs):
+        """ Compute Minimal Deformation Linear Projection.
+            Use kwargs for additional MDLP parameters.
+
+            :param key: Indexes key to select data.
+            :param return_param: If True, returns a tuple (X, mdlp) to store MDLP parameters and apply them later.
+            :param model: Use this argument to pass a trained MDLP model.
+            :param verbose: Display additional information during run.
+            :rtype: AutoData
+            :return: Transformed data
+        """
+        data = self.copy()
+        indexes = data.indexes
+        # compute MDLP and copy indexes
+        if return_param:
+            data, mdlp = reduction.mdlp(data, key=key, return_param=return_param, model=model, verbose=verbose, **kwargs)
+        else:
+            data = reduction.mdlp(data, key=key, return_param=return_param, model=model, verbose=verbose, **kwargs)
+        data = AutoData(data, indexes=indexes)
+        # variable are now only numerical
+        data.indexes['categorical'] = []
+        data.indexes['numerical'] = list(data)
+        data.flush_index() # update columns index after dimensionality change
+        if return_param:
+            return data, mdlp
+        return data
+
     def tsne(self, key=None, verbose=False, **kwargs):
         """ Compute T-SNE.
 
@@ -643,11 +680,13 @@ class AutoData(pd.DataFrame):
     def reduction(self, method='pca', key=None, verbose=False, **kwargs):
         """ Dimensionality reduction.
 
-            :param method: 'pca', 'lda', 'tsne', 'hashing', 'factor', 'random'
+            :param method: 'pca', 'lda', 'tsne', 'hashing', 'factor', 'random', 'mdlp'
         """
         data = self.get_data(key)
         if method == 'pca':
             data = data.pca(key=key, verbose=verbose, **kwargs)
+        elif method == 'mdlp':
+            data = data.mdlp(key=key, verbose=verbose, **kwargs)
         elif method == 'tsne':
             data = data.tsne(key=key, verbose=verbose, **kwargs)
         elif method == 'lda':

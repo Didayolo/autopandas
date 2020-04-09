@@ -8,6 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 import bisect
 import copy
+from scipy.stats import rankdata
 # cat2vec
 #from gensim.models.word2vec import Word2Vec
 from random import shuffle
@@ -154,6 +155,19 @@ def target(data, column, target, mapping=None, return_param=False):
     data[column] = data[column].map(mapping)
     if return_param:
         return data, mapping
+    return data
+
+def rank(data, column, method='average'):
+    """ Replace values by their rank in the column.
+        TODO: save parameters to add values to an already fitted ranking.
+
+        :param df: Data
+        :param column: Column to encode
+        :param method: 'average', 'min', 'max', 'dense', 'ordinal'
+        :return: data
+        :rtype: pd.DataFrame
+    """
+    data[column] = rankdata(-data[column], method=method) # take the opposite to have inverse rank (greater is better)
     return data
 
 def frequency(columns, probability=False):
