@@ -157,17 +157,21 @@ def target(data, column, target, mapping=None, return_param=False):
         return data, mapping
     return data
 
-def rank(data, column, method='average'):
+def rank(data, column, method='average', reverse=False):
     """ Replace values by their rank in the column.
         TODO: save parameters to add values to an already fitted ranking.
 
         :param df: Data
         :param column: Column to encode
         :param method: 'average', 'min', 'max', 'dense', 'ordinal'
+        :param reverse: Ascending or descending order.
         :return: data
         :rtype: pd.DataFrame
     """
-    data[column] = rankdata(-data[column], method=method) # take the opposite to have inverse rank (greater is better)
+    if reverse:
+        data[column] = rankdata(data[column], method=method) # lower is better
+    else:
+        data[column] = rankdata(-data[column], method=method) # take the opposite to have inverse rank (greater is better)
     return data
 
 def frequency(columns, probability=False):
