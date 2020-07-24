@@ -8,7 +8,7 @@ from sklearn.feature_extraction import FeatureHasher
 import pandas as pd
 import autopandas
 import numpy as np
-from .mdlp import MDLP
+#from .mdlp import MDLP
 
 def pca(data, key=None, return_param=False, verbose=False, model=None, **kwargs):
     """ Compute Principal Components Analysis.
@@ -40,27 +40,27 @@ def pca(data, key=None, return_param=False, verbose=False, model=None, **kwargs)
         return X, pca
     return X
 
-def mdlp(data, key=None, return_param=False, verbose=False, model=None, **kwargs):
-    """ Minimal Deformation Linear Projection.
-        Use kwargs for additional MDLP parameters.
-        :param key: Indexes key to select data.
-        :param return_param: If True, returns a tuple (X, mdlp) to store parameters and apply them later.
-        :param model: Use this argument to pass a trained model.
-        :param verbose: Display additional information during run.
-        :rtype: autopandas.AutoData
-        :return: Transformed data
-    """
-    X = np.array(data.get_data(key))
-    mdlp = model
-    if model is None: # initialize and fit model
-        mdlp = MDLP(**kwargs)
-        mdlp.fit(X)
-    X = mdlp.transform(X)
-    if verbose:
-        mdlp.show_learning_curve()
-    if return_param:
-        return X, mdlp
-    return X
+#def mdlp(data, key=None, return_param=False, verbose=False, model=None, **kwargs):
+#    """ Minimal Deformation Linear Projection.
+#        Use kwargs for additional MDLP parameters.
+#        :param key: Indexes key to select data.
+#        :param return_param: If True, returns a tuple (X, mdlp) to store parameters and apply them later.
+#        :param model: Use this argument to pass a trained model.
+#        :param verbose: Display additional information during run.
+#        :rtype: autopandas.AutoData
+#        :return: Transformed data
+#    """
+#    X = np.array(data.get_data(key))
+#    mdlp = model
+#    if model is None: # initialize and fit model
+#        mdlp = MDLP(**kwargs)
+#        mdlp.fit(X)
+#    X = mdlp.transform(X)
+#    if verbose:
+#        mdlp.show_learning_curve()
+#    if return_param:
+#        return X, mdlp
+#    return X
 
 def tsne(data, key=None, verbose=False, **kwargs):
     """ Compute T-SNE.

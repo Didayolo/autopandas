@@ -161,7 +161,7 @@ def rank(data, column, method='average', reverse=False):
     """ Replace values by their rank in the column.
         TODO: save parameters to add values to an already fitted ranking.
 
-        :param df: Data
+        :param data: Data
         :param column: Column to encode
         :param method: 'average', 'min', 'max', 'dense', 'ordinal'
         :param reverse: Ascending or descending order.
