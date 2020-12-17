@@ -92,3 +92,13 @@ def load_squares(n=1):
     else:
         raise Exception('n argument only accepts values 1 and 2')
     return data
+
+def load_boston():
+    """ Large Movie Review Dataset.
+        http://ai.stanford.edu/~amaas/data/sentiment/
+    """
+    print('WARNING: NLP functionality is not available yet.')
+    data = apd.read_csv(os.path.join(CURRENT_PATH, 'imdb_dataset.csv'))
+    data = data.encoding()
+    data.set_class('sentiment')
+    return data
